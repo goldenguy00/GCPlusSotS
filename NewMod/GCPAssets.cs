@@ -60,7 +60,7 @@ namespace GoldenCoastPlusRevived
 
 		public static Sprite RegisterIcons(byte[] resourceBytes)
 		{
-			Texture2D texture2D = new Texture2D(128, 128, UnityEngine.Experimental.Rendering.DefaultFormat.Video, UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
+			Texture2D texture2D = new Texture2D(128, 128, TextureFormat.RGBA32, false);
 			ImageConversion.LoadImage(texture2D, resourceBytes, false);
 			return Sprite.Create(texture2D, new Rect(0f, 0f, (float)texture2D.width, (float)texture2D.height), new Vector2(1f, 1f));
 		}

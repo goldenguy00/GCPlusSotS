@@ -29,7 +29,51 @@ namespace GoldenCoastPlusRevived.Items
 		private void FireLaser()
 		{
 			bool flag = false;
-			for (TeamIndex teamIndex = 0; false; teamIndex++)
+			TeamIndex val = (TeamIndex)0;
+			while ((int)val < 5)
+			{
+				if (val != base.body.teamComponent.teamIndex)
+				{
+					foreach (TeamComponent teamMember in TeamComponent.GetTeamMembers(val))
+					{
+						bool flag3 = (teamMember.transform.position - this.body.transform.position).sqrMagnitude <= 900f;
+						if (flag3)
+						{
+							flag = true;
+							new BlastAttack
+							{
+								attacker = ((Component)base.body).gameObject,
+								inflictor = null,
+								teamIndex = base.body.teamComponent.teamIndex,
+								baseDamage = base.body.damage * 25f * (float)base.stack,
+								baseForce = 5000f,
+								position = ((Component)teamMember).transform.position,
+								radius = 1f,
+								falloffModel = 0
+							}.Fire();
+							EffectData val3 = new EffectData
+							{
+								origin = ((Component)teamMember).transform.position,
+								start = base.body.transform.position
+							};
+							Transform modelTransform = base.body.modelLocator.modelTransform;
+							ChildLocator component = ((Component)modelTransform).GetComponent<ChildLocator>();
+							int num = component.FindChildIndex("Chest");
+							val3.SetChildLocatorTransformReference(((Component)base.body).gameObject, num);
+							EffectManager.SpawnEffect(Resources.Load<GameObject>("prefabs/effects/tracers/TracerGolem"), val3, true);
+							EffectManager.SpawnEffect(Resources.Load<GameObject>("prefabs/effects/impacteffects/ExplosionGolem"), val3, true);
+						}
+					}
+				}
+				val = (TeamIndex)(sbyte)(val + 1);
+			}
+			if (flag)
+			{
+				Util.PlaySound(EntityStates.GolemMonster.FireLaser.attackSoundString, ((Component)base.body).gameObject);
+			}
+
+			/*bool flag = false;
+			for (TeamIndex teamIndex = 0; true; teamIndex++)
 			{
 				bool flag2 = teamIndex != this.body.teamComponent.teamIndex;
 				if (flag2)
@@ -71,7 +115,7 @@ namespace GoldenCoastPlusRevived.Items
 			if (flag4)
 			{
 				Util.PlaySound(EntityStates.GolemMonster.FireLaser.attackSoundString, this.body.gameObject);
-			}
+			}*/
 		}
 
 		private void RefreshTimedBuffs(CharacterBody body, BuffDef buffDef, float duration)

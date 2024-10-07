@@ -19,7 +19,7 @@ using UnityEngine.SceneManagement;
 
 namespace GoldenCoastPlusRevived
 {
-	[BepInPlugin("com.Phreel.GoldenCoastPlusRevived", "GoldenCoastPlusRevived", "1.0.3")]
+	[BepInPlugin("com.Phreel.GoldenCoastPlusRevived", "GoldenCoastPlusRevived", "1.1.0")]
 
 	public class GoldenCoastPlusPlugin : BaseUnityPlugin
 	{
@@ -100,6 +100,7 @@ namespace GoldenCoastPlusRevived
 				hiddenGoldBuffDef = new HiddenGoldBuff().AddBuff();
 				Resources.Load<GameObject>("prefabs/characterbodies/TitanGoldBody").GetComponent<CharacterBody>().baseMaxHealth *= AurelioniteMaxHealthMultiplier.Value;
 				Resources.Load<GameObject>("prefabs/characterbodies/TitanGoldBody").GetComponent<CharacterBody>().levelMaxHealth *= AurelioniteMaxHealthMultiplier.Value;
+				
 			}
 			this.Hook();
 		}
@@ -159,8 +160,8 @@ namespace GoldenCoastPlusRevived
 			bool value = SeedChanges.Value;
 			if (value)
 			{
-				IL.RoR2.GoldTitanManager.TryStartChannelingTitansServer += new ILContext.Manipulator(this.GoldTitanManager_TryStartChannelingTitansServer);
-				IL.RoR2.GoldTitanManager.CalcTitanPowerAndBestTeam += new ILContext.Manipulator(this.GoldTitanManager_CalcTitanPowerAndBestTeam);
+				IL.RoR2.GoldTitanManager.TryStartChannelingTitansServer += GoldTitanManager_TryStartChannelingTitansServer;
+				IL.RoR2.GoldTitanManager.CalcTitanPowerAndBestTeam += GoldTitanManager_CalcTitanPowerAndBestTeam;
 			}
 			On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += new On.RoR2.PickupDropletController.hook_CreatePickupDroplet_PickupIndex_Vector3_Vector3(this.PickupDropletController_CreatePickupDroplet_PickupIndex_Vector3_Vector3);
 			bool value2 = EnableKnurl.Value;
@@ -171,7 +172,7 @@ namespace GoldenCoastPlusRevived
 			bool value3 = EnableGoldElites.Value;
 			if (value3)
 			{
-				On.RoR2.DeathRewards.OnKilledServer += new On.RoR2.DeathRewards.hook_OnKilledServer(this.DeathRewards_OnKilledServer);
+				On.RoR2.DeathRewards.OnKilledServer += DeathRewards_OnKilledServer;
 			}
 			bool value4 = FightChanges.Value;
 			if (value4)
@@ -187,12 +188,12 @@ namespace GoldenCoastPlusRevived
 			bool flag = EnableEye.Value || FightChanges.Value;
 			if (flag)
 			{
-				On.RoR2.CharacterBody.OnInventoryChanged += new On.RoR2.CharacterBody.hook_OnInventoryChanged(this.CharacterBody_OnInventoryChanged);
+				On.RoR2.CharacterBody.OnInventoryChanged += CharacterBody_OnInventoryChanged;
 			}
 			bool flag2 = EnableSword.Value || EnableGoldElites.Value;
 			if (flag2)
 			{
-				On.RoR2.GlobalEventManager.OnHitEnemy += new On.RoR2.GlobalEventManager.hook_OnHitEnemy(this.GlobalEventManager_OnHitEnemy);
+				On.RoR2.GlobalEventManager.OnHitEnemy += GlobalEventManager_OnHitEnemy;
 			}
 		}
 
@@ -456,9 +457,12 @@ namespace GoldenCoastPlusRevived
 							bool flag4 = component.HasBuff(affixGoldDef);
 							if (flag4)
 							{
-								characterBody.master.money -= ((characterBody.master.money < (uint)damageInfo.damage) ? characterBody.master.money : ((uint)damageInfo.damage));
-								master.GiveMoney((uint)(GoldStealAmount.Value * Run.instance.difficultyCoefficient));
-								EffectManager.SimpleImpactEffect(Resources.Load<GameObject>("Prefabs/Effects/ImpactEffects/CoinImpact"), damageInfo.position, Vector3.up, true);
+								if (characterBody != null && characterBody.master != null)
+								{
+									characterBody.master.money -= ((characterBody.master.money < (uint)damageInfo.damage) ? characterBody.master.money : (uint)damageInfo.damage);
+									master.GiveMoney((uint)(GoldStealAmount.Value * Run.instance.difficultyCoefficient));
+									EffectManager.SimpleImpactEffect(Resources.Load<GameObject>("Prefabs/Effects/ImpactEffects/CoinImpact"), damageInfo.position, Vector3.up, true);
+								}
 							}
 						}
 						bool value2 = EnableSword.Value;
