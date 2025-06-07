@@ -19,7 +19,7 @@ using UnityEngine.SceneManagement;
 
 namespace GoldenCoastPlusRevived
 {
-	[BepInPlugin("com.Phreel.GoldenCoastPlusRevived", "GoldenCoastPlusRevived", "1.1.0")]
+	[BepInPlugin("com.Phreel.GoldenCoastPlusRevived", "GoldenCoastPlusRevived", "1.1.2")]
 
 	public class GoldenCoastPlusPlugin : BaseUnityPlugin
 	{
