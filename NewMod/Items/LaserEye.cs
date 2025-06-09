@@ -1,93 +1,81 @@
-﻿using System;
+﻿using BepInEx.Configuration;
+using GoldenCoastPlusRevived.Modules;
 using R2API;
 using RoR2;
+using RoR2BepInExPack.GameAssetPaths;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
 
 namespace GoldenCoastPlusRevived.Items
 {
-	internal class LaserEye : ItemBase
+    internal class LaserEye : ItemBase<LaserEye>
 	{
-		internal override string name
-		{
-			get
-			{
-				return "Guardian's Eye";
-			}
-		}
+        public LaserEye() : base(EnableEye.Value) { }
 
-		internal override string pickup
-		{
-			get
-			{
-				return "Collecting gold will charge up a powerful laser.";
-			}
-		}
+        internal override string name => "Guardian's Eye";
+        internal override string token => "LaserEye";
+        internal override string pickup => "Collecting gold will charge up a powerful laser.";
+        internal override string description => "<style=cShrine>Collecting gold</style> will charge up a <style=cDeath>powerful laser</style> and grant a <style=cIsUtility>stacking buff</style>. " +
+            "At ten stacks of this buff, the <style=cDeath>laser</style> will fire at all enemies within 30 meters, dealing <style=cIsDamage>2500%</style> <style=cStack>(+2500% per stack)</style> BASE damage.";
+        internal override string lore => "The ability to see. Designs such as this have no need to taste. They do not feel, nor smell, nor hear that which surrounds them. " +
+            "They have no need.\n\n...\n\nA sad existence. Forced to follow orders. Nothing more than a servant. No feelings.\n\nPerhaps one exception. " +
+            "One day, this guardian will have no one to take orders from. Will have new challenges to overcome, and new decisions to make. A proper protector for this planet.";
 
-		internal override string description
-		{
-			get
-			{
-				return "<style=cShrine>Collecting gold</style> will charge up a <style=cDeath>powerful laser</style> and grant a <style=cIsUtility>stacking buff</style>. At ten stacks of this buff, the <style=cDeath>laser</style> will fire at all enemies within 30 meters, dealing <style=cIsDamage>2500%</style> <style=cStack>(+2500% per stack)</style> BASE damage.";
-			}
-		}
 
-		internal override string lore
-		{
-			get
-			{
-				return "The ability to see. Designs such as this have no need to taste. They do not feel, nor smell, nor hear that which surrounds them. They have no need.\n\n...\n\nA sad existence. Forced to follow orders. Nothing more than a servant. No feelings.\n\nPerhaps one exception. One day, this guardian will have no one to take orders from. Will have new challenges to overcome, and new decisions to make. A proper protector for this planet.";
-			}
-		}
+        internal override GameObject modelPrefab => GCPAssets.LaserEyePrefab;
+        internal override Sprite iconSprite => GCPAssets.LaserEyeIcon;
+        internal override ItemTier Tier => ItemTier.Boss;
+        internal override ItemTag[] ItemTags => new ItemTag[] { ItemTag.BrotherBlacklist, ItemTag.CannotDuplicate, ItemTag.WorldUnique };
+        internal override bool hidden => false;
 
-		internal override string token
-		{
-			get
-			{
-				return "LaserEye";
-			}
-		}
+        public static ConfigEntry<bool> EnableEye { get; set; }
+        public static ConfigEntry<float> EyeDamage { get; set; }
+        public static ConfigEntry<int> EyeStacksRequired { get; set; }
+        public static ConfigEntry<float> EyeBlastProcCoeff { get; set; }
 
-		internal override GameObject modelPrefab
-		{
-			get
-			{
-				return GCPAssets.LaserEyePrefab;
-			}
-		}
+        internal override void AddItem()
+        {
+            base.AddItem();
 
-		internal override Sprite iconSprite
-		{
-			get
-			{
-				return GCPAssets.LaserEyeIcon;
-			}
-		}
+            var material2 = Object.Instantiate(Addressables.LoadAssetAsync<Material>(RoR2_Base_NearbyDamageBonus.matDiamond_mat).WaitForCompletion());
+            material2.color = Color.red;
 
-		internal override ItemTier Tier
-		{
-			get
-			{
-				return ItemTier.Boss;
-			}
-		}
+            var material3 = Object.Instantiate(Addressables.LoadAssetAsync<Material>(RoR2_Base_Titan.matTitanGold_mat).WaitForCompletion());
 
-		internal override ItemTag[] ItemTags
-		{
-			get
-			{
-				return new ItemTag[] { ItemTag.BrotherBlacklist, ItemTag.CannotDuplicate, ItemTag.WorldUnique };
-			}
-		}
+            GCPAssets.LaserEyePrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Meteor.PickupMeteor_prefab).WaitForCompletion().InstantiateClone("PickupLaserEye", false);
+            var componentInChildren = GCPAssets.LaserEyePrefab.GetComponentInChildren<Renderer>();
+            componentInChildren.materials = new Material[]
+            {
+                material2,
+                material3
+            };
 
-		internal override bool hidden
-		{
-			get
-			{
-				return false;
-			}
-		}
+            var body = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldBody_prefab).WaitForCompletion().GetComponent<CharacterBody>();
+            var dt = body.GetComponent<DeathRewards>().bossDropTable as ExplicitPickupDropTable;
+            HG.ArrayUtils.ArrayAppend(ref dt.pickupEntries, new ExplicitPickupDropTable.PickupDefEntry
+            {
+                pickupWeight = 1,
+                pickupDef = itemDef
+            });
+        }
 
-		internal override ItemDisplayRuleDict AddItemDisplays()
+        internal override void AddHooks()
+        {
+            base.AddHooks();
+
+            CharacterBody.onBodyInventoryChangedGlobal += CharacterBody_onBodyInventoryChangedGlobal;
+        }
+
+        private void CharacterBody_onBodyInventoryChangedGlobal(CharacterBody body)
+        {
+            if (NetworkServer.active)
+            {
+                body.AddItemBehavior<LaserEyeBehavior>(body.inventory.GetItemCount(itemDef));
+            }
+        }
+
+        internal override ItemDisplayRuleDict AddItemDisplays()
 		{
 			ItemDisplayRule[] array = new ItemDisplayRule[1];
 			int num = 0;

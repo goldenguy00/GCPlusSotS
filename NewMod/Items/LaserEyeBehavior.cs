@@ -1,32 +1,51 @@
 ﻿using System;
-using EntityStates.GolemMonster;
+using GoldenCoastPlusRevived.Buffs;
 using RoR2;
 using UnityEngine;
 
 namespace GoldenCoastPlusRevived.Items
 {
 	public class LaserEyeBehavior : CharacterBody.ItemBehavior
-	{
-		private void FixedUpdate()
+    {
+        private int goldDifference;
+        private int previousGold;
+
+        private void FixedUpdate()
 		{
-			this.currentGold = (int)this.body.master.money;
-			this.goldDifference = this.currentGold - this.previousGold;
-			bool flag = this.goldDifference > 0;
-			if (flag)
+			var currentGold = (int)this.body.master.money;
+			this.goldDifference = Math.Max(0, currentGold - this.previousGold);
+            this.previousGold = currentGold;
+
+            if (this.goldDifference > 0)
 			{
-				this.RefreshTimedBuffs(this.body, GoldenCoastPlusPlugin.laserEyeChargeDef, 5f);
-				this.body.AddTimedBuff(GoldenCoastPlusPlugin.laserEyeChargeDef, 5f);
+				this.RefreshTimedBuffs(this.body, LaserEyeCharge.BuffIndex, 5f);
 			}
-			bool flag2 = this.body.GetBuffCount(GoldenCoastPlusPlugin.laserEyeChargeDef) >= GoldenCoastPlusPlugin.EyeStacksRequired.Value;
-			if (flag2)
+
+			if (this.body.GetBuffCount(LaserEyeCharge.BuffIndex) >= LaserEye.EyeStacksRequired.Value)
 			{
-				this.body.ClearTimedBuffs(GoldenCoastPlusPlugin.laserEyeChargeDef);
+				this.body.ClearTimedBuffs(LaserEyeCharge.BuffIndex);
 				this.FireLaser();
 			}
-			this.previousGold = this.currentGold;
-		}
+        }
 
-		private void FireLaser()
+        private void RefreshTimedBuffs(CharacterBody body, BuffIndex buffIndex, float duration)
+        {
+            for (int l = 0; l < body.timedBuffs.Count; l++)
+            {
+                var timedBuff = body.timedBuffs[l];
+                if (timedBuff.buffIndex == buffIndex)
+                {
+                    if (timedBuff.timer < duration)
+                    {
+                        timedBuff.timer = duration;
+                        timedBuff.totalDuration = duration;
+                    }
+                }
+            }
+            this.body.AddTimedBuff(buffIndex, 5f);
+        }
+
+        private void FireLaser()
 		{
 			bool flag = false;
 			TeamIndex val = (TeamIndex)0;
@@ -117,25 +136,5 @@ namespace GoldenCoastPlusRevived.Items
 				Util.PlaySound(EntityStates.GolemMonster.FireLaser.attackSoundString, this.body.gameObject);
 			}*/
 		}
-
-		private void RefreshTimedBuffs(CharacterBody body, BuffDef buffDef, float duration)
-		{
-			bool flag = !body || body.GetBuffCount(buffDef) <= 0;
-			if (!flag)
-			{
-				foreach (CharacterBody.TimedBuff timedBuff in body.timedBuffs)
-				{
-					bool flag2 = timedBuff.buffIndex == buffDef.buffIndex;
-					if (flag2)
-					{
-						timedBuff.timer = duration;
-					}
-				}
-			}
-		}
-
-		private int goldDifference;
-		private int currentGold;
-		private int previousGold = 0;
 	}
 }

@@ -1,57 +1,18 @@
-﻿using System;
+﻿using GoldenCoastPlusRevived.Modules;
 using RoR2;
 using UnityEngine;
 
 namespace GoldenCoastPlusRevived.Buffs
 {
-	internal class HiddenGoldBuff : BuffBase
+    internal class HiddenGoldBuff : BuffBase<HiddenGoldBuff>
 	{
-		internal override string name
-		{
-			get
-			{
-				return "<style=cShrine>Aurelionite's Blessing</style>";
-			}
-		}
+        public HiddenGoldBuff() : base(PluginConfig.FightChanges.Value) { }
 
-		internal override Sprite icon
-		{
-			get
-			{
-				return GCPAssets.hiddenGoldBuffIcon;
-			}
-		}
-
-		internal override Color color
-		{
-			get
-			{
-				return Color.white;
-			}
-		}
-
-		internal override bool canStack
-		{
-			get
-			{
-				return true;
-			}
-		}
-
-		internal override bool isDebuff
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		internal override EliteDef eliteDef
-		{
-			get
-			{
-				return null;
-			}
-		}
-	}
+        internal override string name => "<style=cShrine>Aurelionite's Blessing</style>";
+        internal override Sprite icon => GCPAssets.HiddenGoldBuffIcon;
+        internal override Color color => Color.white;
+        internal override bool canStack => true;
+        internal override bool isDebuff => false;
+        internal override EliteDef eliteDef => null;
+    }
 }

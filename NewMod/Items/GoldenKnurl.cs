@@ -1,93 +1,93 @@
-﻿using System;
+﻿using BepInEx.Configuration;
+using GoldenCoastPlusRevived.Modules;
 using R2API;
 using RoR2;
+using RoR2BepInExPack.GameAssetPaths;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace GoldenCoastPlusRevived.Items
 {
-	internal class GoldenKnurl : ItemBase
+    internal class GoldenKnurl : ItemBase<GoldenKnurl>
 	{
-		internal override string name
-		{
-			get
-			{
-				return "Golden Knurl";
-			}
-		}
+        public GoldenKnurl() : base(EnableKnurl.Value) { }
 
-		internal override string pickup
-		{
-			get
-			{
-				return "Boosts health, regeneration, and armor.";
-			}
-		}
+        internal override string name => "Golden Knurl";
+        internal override string token => "GoldenKnurl";
+        internal override string pickup => "Boosts health, regeneration, and armor.";
+        internal override string description => "<style=cIsHealing>Increase maximum health</style> by <style=cIsHealing>+10%</style> <style=cStack>(+10% per stack)</style>, " +
+            "<style=cIsHealing>base health regen</style> by <style=cIsHealing>+2.4 hp/s</style> <style=cStack>(+2.4 hp/s per stack)</style>, and <style=cIsUtility>armor</style> " +
+            "by <style=cIsUtility>+20</style> <style=cStack>(+20 per stack)</style>.";
+        internal override string lore => "A well-tested design. One that's proven powerful, yet gentle. That which can coexist with this planet's creatures, but defend them when need be." +
+            "\n\nA construction of gold. Something unique. Something distinct. Something iconic. One to stand out, and be remembered both by friend and foe.\n\nA guardian." +
+            " A creature who can defend this Heaven. One day, we will no longer be here for these creatures. But this one will. One to ensure their survival, when we can not.";
 
-		internal override string description
-		{
-			get
-			{
-				return "<style=cIsHealing>Increase maximum health</style> by <style=cIsHealing>+10%</style> <style=cStack>(+10% per stack)</style>, <style=cIsHealing>base health regen</style> by <style=cIsHealing>+2.4 hp/s</style> <style=cStack>(+2.4 hp/s per stack)</style>, and <style=cIsUtility>armor</style> by <style=cIsUtility>+20</style> <style=cStack>(+20 per stack)</style>.";
-			}
-		}
 
-		internal override string lore
-		{
-			get
-			{
-				return "A well-tested design. One that's proven powerful, yet gentle. That which can coexist with this planet's creatures, but defend them when need be.\n\nA construction of gold. Something unique. Something distinct. Something iconic. One to stand out, and be remembered both by friend and foe.\n\nA guardian. A creature who can defend this Heaven. One day, we will no longer be here for these creatures. But this one will. One to ensure their survival, when we can not.";
-			}
-		}
+        internal override GameObject modelPrefab => GCPAssets.GoldenKnurlPrefab;
+        internal override Sprite iconSprite => GCPAssets.GoldenKnurlIcon;
+        internal override ItemTier Tier => ItemTier.Boss;
+        internal override ItemTag[] ItemTags => new ItemTag[] { ItemTag.BrotherBlacklist, ItemTag.CannotDuplicate, ItemTag.WorldUnique };
+        internal override bool hidden => false;
 
-		internal override string token
-		{
-			get
-			{
-				return "GoldenKnurl";
-			}
-		}
+        public static ConfigEntry<bool> EnableKnurl { get; set; }
+        public static ConfigEntry<float> KnurlHealth { get; set; }
+        public static ConfigEntry<float> KnurlRegen { get; set; }
+        public static ConfigEntry<float> KnurlArmor { get; set; }
 
-		internal override GameObject modelPrefab
-		{
-			get
-			{
-				return GCPAssets.GoldenKnurlPrefab;
-			}
-		}
+        internal override void AddItem()
+        {
+            base.AddItem();
 
-		internal override Sprite iconSprite
-		{
-			get
-			{
-				return GCPAssets.GoldenKnurlIcon;
-			}
-		}
+            var material = Object.Instantiate(Addressables.LoadAssetAsync<Material>(RoR2_Base_Titan.matTitanGold_mat).WaitForCompletion());
+            GCPAssets.GoldenKnurlPrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Knurl.PickupKnurl_prefab).WaitForCompletion().InstantiateClone("PickupGoldenKnurl", false);
+            var componentsInChildren = GCPAssets.GoldenKnurlPrefab.GetComponentsInChildren<Renderer>();
+            foreach (var renderer in componentsInChildren)
+            {
+                renderer.material = material;
+            }
+            GCPAssets.GoldenKnurlFollowerPrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Knurl.DisplayKnurl_prefab).WaitForCompletion().InstantiateClone("GCPAssets.GoldenKnurlFollowerPrefab", false);
+            GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("mdlKnurl").gameObject.SetActive(false);
+            GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("KnurlPebbleParticles").gameObject.SetActive(false);
 
-		internal override ItemTier Tier
-		{
-			get
-			{
-				return ItemTier.Boss;
-			}
-		}
+            var gameObject = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Knurl.DisplayKnurl_prefab).WaitForCompletion().transform.Find("mdlKnurl").gameObject.InstantiateClone("GoldenKnurlFollowerModel", false);
+            var component = gameObject.GetComponent<Renderer>();
+            component.material = material;
+            gameObject.transform.parent = GCPAssets.GoldenKnurlFollowerPrefab.transform;
+            GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GoldenKnurlFollowerModel").localPosition = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("mdlKnurl").localPosition;
+            GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GoldenKnurlFollowerModel").localEulerAngles = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("mdlKnurl").localEulerAngles;
+            var gameObject2 = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Knurl.DisplayKnurl_prefab).WaitForCompletion().transform.Find("KnurlPebbleParticles").gameObject.InstantiateClone("GoldenKnurlFollowerPebbles", false);
+            var component2 = gameObject2.GetComponent<Renderer>();
+            component2.material = material;
+            gameObject2.transform.parent = GCPAssets.GoldenKnurlFollowerPrefab.transform;
+            GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GoldenKnurlFollowerPebbles").localPosition = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("KnurlPebbleParticles").localPosition;
+            GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GoldenKnurlFollowerPebbles").localEulerAngles = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("KnurlPebbleParticles").localEulerAngles;
 
-		internal override ItemTag[] ItemTags
-		{
-			get
-			{
-				return new ItemTag[] { ItemTag.BrotherBlacklist, ItemTag.CannotDuplicate, ItemTag.WorldUnique };
-			}
-		}
+            var body = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldBody_prefab).WaitForCompletion().GetComponent<CharacterBody>();
+            var dt = body.GetComponent<DeathRewards>().bossDropTable as ExplicitPickupDropTable;
+            HG.ArrayUtils.ArrayAppend(ref dt.pickupEntries, new ExplicitPickupDropTable.PickupDefEntry
+            {
+                pickupWeight = 1,
+                pickupDef = itemDef
+            });
+        }
 
-		internal override bool hidden
-		{
-			get
-			{
-				return false;
-			}
-		}
+        internal override void AddHooks()
+        {
+            RecalculateStatsAPI.GetStatCoefficients += GoldenKnurlStatChanges;
+        }
 
-		internal override ItemDisplayRuleDict AddItemDisplays()
+        private static void GoldenKnurlStatChanges(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            var itemCount = sender.inventory?.GetItemCount(GoldenKnurl.ItemIndex) ?? 0;
+            if (itemCount > 0)
+            {
+                args.armorAdd += KnurlArmor.Value * (float)itemCount;
+                args.baseRegenAdd += KnurlRegen.Value * (float)itemCount;
+                args.healthMultAdd += KnurlHealth.Value * (float)itemCount;
+            }
+        }
+
+        internal override ItemDisplayRuleDict AddItemDisplays()
 		{
 			ItemDisplayRule[] array = new ItemDisplayRule[1];
 			int num = 0;

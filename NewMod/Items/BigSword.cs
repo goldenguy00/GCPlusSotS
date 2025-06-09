@@ -1,94 +1,109 @@
-﻿using System;
+﻿using BepInEx.Configuration;
+using GoldenCoastPlusRevived.Modules;
 using R2API;
 using RoR2;
+using RoR2.Projectile;
+using RoR2BepInExPack.GameAssetPaths;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace GoldenCoastPlusRevived.Items
 {
-	internal class BigSword : ItemBase
-	{
-		internal override string name
-		{
-			get
-			{
-				return "Titanic Greatsword";
-			}
-		}
+    internal class BigSword : ItemBase<BigSword>
+    {
+        public BigSword() : base(EnableSword.Value) { }
 
-		internal override string pickup
-		{
-			get
-			{
-				return "Chance on hit to summon the sword of a long-imprisoned guardian.";
-			}
-		}
+        internal override string name => "Titanic Greatsword";
+        internal override string token => "BigSword";
+        internal override string pickup => "Chance on hit to summon the sword of a long-imprisoned guardian.";
+        internal override string description => "<style=cIsDamage>5%</style> chance on hit to summon <style=cIsDamage>Aurelionite's sword</style> to strike an enemy from underneath " +
+            "for <style=cIsDamage>1250%</style> <style=cStack>(+1250% per stack)</style> TOTAL damage.";
+        internal override string lore => "The sword. The mark of a champion, fighting to protect. Perhaps, some day, the only thing between it and annihilation. " +
+            "A tool to defend.\n\nBut, also, the tool of a conqueror. One that is designed with the sole purpose to draw blood. Nothing more. In which way it is used is up to the wielder.";
 
-		internal override string description
-		{
-			get
-			{
-				return "<style=cIsDamage>5%</style> chance on hit to summon <style=cIsDamage>Aurelionite's sword</style> to strike an enemy from underneath for <style=cIsDamage>1250%</style> <style=cStack>(+1250% per stack)</style> TOTAL damage.";
-			}
-		}
+        internal override GameObject modelPrefab => GCPAssets.BigSwordPrefab;
+        internal override Sprite iconSprite => GCPAssets.BigSwordIcon;
+        internal override ItemTier Tier => ItemTier.Boss;
+        internal override ItemTag[] ItemTags => new ItemTag[] { ItemTag.BrotherBlacklist, ItemTag.CannotDuplicate, ItemTag.WorldUnique };
+        internal override bool hidden => false;
 
-		internal override string lore
-		{
-			get
-			{
-				return "The sword. The mark of a champion, fighting to protect. Perhaps, some day, the only thing between it and annihilation. A tool to defend.\n\nBut, also, the tool of a conqueror. One that is designed with the sole purpose to draw blood. Nothing more. In which way it is used is up to the wielder.";
-			}
-		}
+        public static ConfigEntry<bool> EnableSword { get; set; }
+        public static ConfigEntry<float> SwordDamage { get; set; }
+        public static ConfigEntry<float> SwordChance { get; set; }
+        public static ConfigEntry<float> SwordProcCoeff { get; set; }
 
-		internal override string token
-		{
-			get
-			{
-				return "BigSword";
-			}
-		}
+        internal static R2API.ModdedProcType swordProcType;
 
-		internal override GameObject modelPrefab
-		{
-			get
-			{
-				return GCPAssets.BigSwordPrefab;
-			}
-		}
-
-		internal override Sprite iconSprite
-		{
-			get
-			{
-				return GCPAssets.BigSwordIcon;
-			}
-		}
-
-        internal override ItemTier Tier
+        internal override void AddItem()
         {
-            get
+            base.AddItem();
+            
+            swordProcType = ProcTypeAPI.ReserveProcType();
+
+            GCPAssets.SwordProjectile = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldPreFistProjectile_prefab).WaitForCompletion().InstantiateClone("GCPGCPAssets.swordProjectile", true);
+            GCPAssets.SwordProjectile.GetComponent<ProjectileController>().procCoefficient = BigSword.SwordProcCoeff.Value;
+            GCPAssets.SwordProjectile.GetComponent<ProjectileImpactExplosion>().blastProcCoefficient = BigSword.SwordProcCoeff.Value;
+
+            ContentAddition.AddProjectile(GCPAssets.SwordProjectile);
+
+            var mdl = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldBody_prefab).WaitForCompletion().GetComponent<ModelLocator>().modelTransform;
+            GCPAssets.BigSwordPrefab = mdl.Find("TitanArmature/ROOT/base/stomach/chest/upper_arm.r/lower_arm.r/hand.r/RightFist").gameObject.InstantiateClone("PickupBigSword", false);
+            var transform = GCPAssets.BigSwordPrefab.transform.Find("Sword");
+            transform.transform.localPosition = new Vector3(4f, -5.5f, 0f);
+            transform.transform.localEulerAngles = new Vector3(135f, 270f, 0f);
+
+            var body = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldBody_prefab).WaitForCompletion().GetComponent<CharacterBody>();
+            var dt = body.GetComponent<DeathRewards>().bossDropTable as ExplicitPickupDropTable;
+            HG.ArrayUtils.ArrayAppend(ref dt.pickupEntries, new ExplicitPickupDropTable.PickupDefEntry
             {
-				return ItemTier.Boss;
+                pickupWeight = 1,
+                pickupDef = itemDef
+            });
+        }
+
+        internal override void AddHooks()
+        {
+            On.RoR2.GlobalEventManager.OnHitEnemy += GlobalEventManager_OnHitEnemy;
+        }
+
+        private static void GlobalEventManager_OnHitEnemy(On.RoR2.GlobalEventManager.orig_OnHitEnemy orig, GlobalEventManager self, DamageInfo damageInfo, GameObject victim)
+        {
+            orig(self, damageInfo, victim);
+
+            if (!damageInfo.attacker)
+                return;
+
+            var attackerBody = damageInfo?.attacker ? damageInfo.attacker.GetComponent<CharacterBody>() : null;
+            var victimBody = victim ? victim.GetComponent<CharacterBody>() : null;
+            if (!(attackerBody && victimBody))
+                return;
+
+            var itemCount = attackerBody.inventory?.GetItemCount(BigSword.ItemIndex) ?? 0;
+            if (itemCount > 0 && !damageInfo.procChainMask.HasModdedProc(swordProcType) && Util.CheckRoll(SwordChance.Value * damageInfo.procCoefficient, attackerBody.master))
+            {
+                var damage = Util.OnHitProcDamage(damageInfo.damage, attackerBody.damage, SwordDamage.Value * (float)itemCount);
+                damageInfo.procChainMask.AddModdedProc(swordProcType);
+
+                Physics.Raycast(damageInfo.position, Vector3.down, out var raycastHit, float.PositiveInfinity, LayerIndex.world.mask);
+
+                ProjectileManager.instance.FireProjectile(new FireProjectileInfo
+                {
+                    projectilePrefab = GCPAssets.SwordProjectile,
+                    position = raycastHit.point,
+                    rotation = Quaternion.identity,
+                    procChainMask = damageInfo.procChainMask,
+                    target = victim,
+                    owner = damageInfo.attacker,
+                    damage = damage,
+                    crit = damageInfo.crit,
+                    force = 10000f,
+                    damageColorIndex = (DamageColorIndex)3,
+                    fuseOverride = 0.5f
+                });
             }
         }
 
-		internal override ItemTag[] ItemTags
-        {
-            get
-            {
-				return new ItemTag[] { ItemTag.BrotherBlacklist, ItemTag.CannotDuplicate, ItemTag.WorldUnique };
-            }
-        }
-
-
-		internal override bool hidden
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		internal override ItemDisplayRuleDict AddItemDisplays()
+        internal override ItemDisplayRuleDict AddItemDisplays()
 		{
 			ItemDisplayRule[] array = new ItemDisplayRule[1];
 			int num = 0;

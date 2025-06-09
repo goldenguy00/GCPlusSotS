@@ -2,17 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>1701;1702;IDE0051;CS0618</NoWarn>
+    <LangVersion>latestMajor</LangVersion>
   </PropertyGroup>
-
+    
   <ItemGroup>
-    <None Remove="GCPResources.resources" />
-    <None Remove="Properties\GCPResources.resources" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="GCPResources.resources" />
+    <EmbeddedResource Include="Assets\Aurelionite_s_Blessing.png" />
+    <EmbeddedResource Include="Assets\Golden_Knurl.png" />
+    <EmbeddedResource Include="Assets\Gold_Elite_Icon.png" />
+    <EmbeddedResource Include="Assets\Guardian_s_Eye.png" />
+    <EmbeddedResource Include="Assets\Titanic_Greatsword.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,19 +20,26 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="BepInEx.Core" Version="5.*" />
-    <PackageReference Include="RoR2BepInExPack" Version="1.30.0" />
+    <PackageReference Include="R2API.ProcType" Version="1.0.2" />
+    <PackageReference Include="RoR2BepInExPack" Version="1.31.0" />
     <PackageReference Include="RiskOfRain2.GameLibs" Version="1.3.9-r.0" />
     <PackageReference Include="UnityEngine.Modules" Version="2021.3.33" />
     <PackageReference Include="MMHOOK.RoR2" Version="2025.6.3">
         <NoWarn>NU1701</NoWarn>
     </PackageReference>
-    <PackageReference Include="R2API.RecalculateStats" Version="1.4.*" />
-    <PackageReference Include="R2API.Director" Version="2.1.*" />
-    <PackageReference Include="R2API.Elites" Version="1.0.*" />
+    <PackageReference Include="R2API.RecalculateStats" Version="1.6.0" />
     <PackageReference Include="R2API.Prefab" Version="1.0.*" />
     <PackageReference Include="R2API.Items" Version="1.0.*" />
     <PackageReference Include="R2API.Language" Version="1.0.*" />
-    <PackageReference Include="R2API.Networking" Version="1.0.*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="MiscFixes">
+      <HintPath>..\..\..\SharedRef\MiscFixes.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="call weave.bat $(TargetDir) $(AssemblyName)" />
+  </Target>
 </Project>

@@ -1,57 +1,31 @@
-﻿using System;
+﻿using GoldenCoastPlusRevived.Modules;
 using RoR2;
 using UnityEngine;
 
 namespace GoldenCoastPlusRevived.Buffs
 {
-	internal class TitanGoldArmorBroken : BuffBase
+    internal class TitanGoldArmorBroken : BuffBase<TitanGoldArmorBroken>
 	{
-		internal override string name
-		{
-			get
-			{
-				return "TitanGoldArmorBroken";
-			}
-		}
+        public TitanGoldArmorBroken() : base(PluginConfig.FightChanges.Value) { }
 
-		internal override Sprite icon
-		{
-			get
-			{
-				return GCPAssets.TitanGoldArmorBrokenIcon;
-			}
-		}
+        internal override string name => "TitanGoldArmorBroken";
+        internal override Sprite icon => GCPAssets.TitanGoldArmorBrokenIcon;
+        internal override Color color => Color.yellow;
+        internal override bool canStack => false;
+        internal override bool isDebuff => true;
+        internal override EliteDef eliteDef => null;
 
-		internal override Color color
-		{
-			get
-			{
-				return Color.yellow;
-			}
-		}
+        internal override void AddHooks()
+        {
+            On.RoR2.HealthComponent.TakeDamageProcess += HealthComponent_TakeDamageProcess;
+        }
 
-		internal override bool canStack
-		{
-			get
-			{
-				return false;
-			}
-		}
+        private static void HealthComponent_TakeDamageProcess(On.RoR2.HealthComponent.orig_TakeDamageProcess orig, HealthComponent self, DamageInfo damageInfo)
+        {
+            if (self.body && self.body.HasBuff(TitanGoldArmorBroken.BuffIndex))
+                damageInfo.damage *= PluginConfig.AurelioniteArmorBrokenMult.Value;
 
-		internal override bool isDebuff
-		{
-			get
-			{
-				return true;
-			}
-		}
-
-		internal override EliteDef eliteDef
-		{
-			get
-			{
-				return null;
-			}
-		}
-	}
+            orig(self, damageInfo);
+        }
+    }
 }

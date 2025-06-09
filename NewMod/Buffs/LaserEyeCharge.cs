@@ -1,57 +1,19 @@
-﻿using System;
+﻿using GoldenCoastPlusRevived.Items;
+using GoldenCoastPlusRevived.Modules;
 using RoR2;
 using UnityEngine;
 
 namespace GoldenCoastPlusRevived.Buffs
 {
-	internal class LaserEyeCharge : BuffBase
+    public class LaserEyeCharge : BuffBase<LaserEyeCharge>
 	{
-		internal override string name
-		{
-			get
-			{
-				return "LaserEyeCharge";
-			}
-		}
+        public LaserEyeCharge() : base(LaserEye.EnableEye.Value) { }
 
-		internal override Sprite icon
-		{
-			get
-			{
-				return GCPAssets.LaserEyeIcon;
-			}
-		}
-
-		internal override Color color
-		{
-			get
-			{
-				return Color.red;
-			}
-		}
-
-		internal override bool canStack
-		{
-			get
-			{
-				return true;
-			}
-		}
-
-		internal override bool isDebuff
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		internal override EliteDef eliteDef
-		{
-			get
-			{
-				return null;
-			}
-		}
-	}
+        internal override string name => "LaserEyeCharge";
+        internal override Sprite icon => GCPAssets.LaserEyeIcon;
+        internal override Color color => Color.red;
+        internal override bool canStack => true;
+        internal override bool isDebuff => false;
+        internal override EliteDef eliteDef => null;
+    }
 }
