@@ -42,7 +42,7 @@ namespace GoldenCoastPlusRevived
                 Extensions.ConfigFlags.ServerSided);
 
             AurelioniteBlessingGoldGain = cfg.BindOptionSlider(section,
-                "Aurelionite's Blessing buff additional gold gain multiplier",
+                "Aurelionites Blessing buff additional gold gain multiplier",
                 "Adjust the buffs gold gain multiplier (0.25 = 25%)",
                 0.25f,
                 0f, 1f,
