@@ -11,16 +11,12 @@ namespace GoldenCoastPlusRevived
         public static ConfigEntry<float> AurelioniteArmorBrokenMult { get; set; }
         public static ConfigEntry<float> AurelioniteBlessingGoldGain { get; set; }
 
-        public static ConfigEntry<bool> SeedChanges { get; set; }
-        public static ConfigEntry<int> TitanGoldMultiplier { get; set; }
-
         internal static void Init(ConfigFile cfg)
         {
             BindFightChanges(cfg, "Aurelionite Fight Changes");
             BindTitanicGreatsword(cfg, "Titanic Greatsword");
             BindGoldenKnurl(cfg, "Golden Knurl");
             BindGuardiansEye(cfg, "Guardians Eye");
-            BindHalcyonSeedChanges(cfg, "Halcyon Seed Changes");
         }
 
         private static void BindFightChanges(ConfigFile cfg, string section)
@@ -39,15 +35,15 @@ namespace GoldenCoastPlusRevived
 
             AurelioniteArmorBrokenMult = cfg.BindOptionSlider(section,
                 "Damage taken multiplier debuff",
-                "Adjust the damage taken debuff multiplier as decimal.",
+                "Adjust the boss's damage taken multiplier as decimal.",
                 1.5f,
                 0f, 5f,
                 Extensions.ConfigFlags.ServerSided);
 
             AurelioniteBlessingGoldGain = cfg.BindOptionSlider(section,
-                "Aurelionite's Blessing additional gold gain multiplier (0.15 = 15%)",
+                "Aurelionite's Blessing additional gold gain multiplier (0.25 = 25%)",
                 "Adjust the buffs gold gain multiplier",
-                0.15f,
+                0.25f,
                 0f, 1f,
                 Extensions.ConfigFlags.ServerSided);
         }
@@ -76,12 +72,6 @@ namespace GoldenCoastPlusRevived
             LaserEye.EyeDamage = cfg.Bind(section, "Guardians Eye Damage", 25f, "Adjust how much damage Guardian's Eye does, as a decimal.");
             LaserEye.EyeDamage = cfg.Bind(section, "Guardians Eye Blast Proc Coeff", 1f, "Adjust the proc coefficient of Guardian's Eye blast, as a decimal.");
             LaserEye.EyeStacksRequired = cfg.Bind(section, "Guardians Eye Stacks Required", 10, "Adjust how many stacks are required for Guardian's Eye to trigger.");
-        }
-        
-        private static void BindHalcyonSeedChanges(ConfigFile cfg, string section)
-        {
-            SeedChanges = cfg.Bind(section, "Enable Halcyon Seed Changes", true, "Should the changes to Halcyon Seed be enabled?");
-            TitanGoldMultiplier = cfg.Bind(section, "Teleporter Aurelionite Buff Multiplier", 3, "Adjust how much Aurelionite's damage and health are buffed.");
         }
     }
 }
