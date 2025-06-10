@@ -39,9 +39,9 @@ namespace GoldenCoastPlusRevived.Buffs
 
         public BuffDef buffDef;
 
-        internal virtual BuffDef AddBuff()
+        internal virtual void AddBuff()
         {
-            var buffDef = ScriptableObject.CreateInstance<BuffDef>();
+            buffDef = ScriptableObject.CreateInstance<BuffDef>();
             buffDef.name = this.name;
             buffDef.iconSprite = this.icon;
             buffDef.buffColor = this.color;
@@ -49,7 +49,6 @@ namespace GoldenCoastPlusRevived.Buffs
             buffDef.isDebuff = this.isDebuff;
             buffDef.eliteDef = this.eliteDef;
             ContentAddition.AddBuffDef(buffDef);
-            return buffDef;
         }
         internal virtual void AddHooks()
         {

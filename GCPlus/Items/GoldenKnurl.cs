@@ -62,8 +62,7 @@ namespace GoldenCoastPlusRevived.Items
             GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GoldenKnurlFollowerPebbles").localPosition = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("KnurlPebbleParticles").localPosition;
             GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GoldenKnurlFollowerPebbles").localEulerAngles = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("KnurlPebbleParticles").localEulerAngles;
 
-            var body = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldBody_prefab).WaitForCompletion().GetComponent<CharacterBody>();
-            var dt = body.GetComponent<DeathRewards>().bossDropTable as ExplicitPickupDropTable;
+            var dt = Addressables.LoadAssetAsync<ExplicitPickupDropTable>(RoR2_Base_Titan.dtBossTitanGold_asset).WaitForCompletion();
             HG.ArrayUtils.ArrayAppend(ref dt.pickupEntries, new ExplicitPickupDropTable.PickupDefEntry
             {
                 pickupWeight = 1,

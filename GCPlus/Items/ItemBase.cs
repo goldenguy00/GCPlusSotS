@@ -25,6 +25,7 @@ namespace GoldenCoastPlusRevived.Items
         {
             if (!enabled)
                 return;
+
             AddItem();
             AddHooks();
         }
@@ -52,7 +53,7 @@ namespace GoldenCoastPlusRevived.Items
 
         internal virtual void AddItem()
         {
-            var itemDef = ScriptableObject.CreateInstance<ItemDef>();
+            itemDef = ScriptableObject.CreateInstance<ItemDef>();
             itemDef.name = this.token;
             itemDef.nameToken = this.token.ToUpper() + "_NAME";
             itemDef.pickupToken = this.token.ToUpper() + "_PICKUP";
@@ -64,16 +65,11 @@ namespace GoldenCoastPlusRevived.Items
             itemDef.tags = ItemTags;
             itemDef.hidden = this.hidden;
 
-            var itemDisplayRules = this.AddItemDisplays();
-
-            ItemAPI.Add(new CustomItem(itemDef, itemDisplayRules));
+            ItemAPI.Add(new CustomItem(itemDef, this.AddItemDisplays()));
         }
 
         internal virtual void AddHooks() { }
 
-        internal virtual ItemDisplayRuleDict AddItemDisplays()
-        {
-            return new ItemDisplayRuleDict(Array.Empty<ItemDisplayRule>());
-        }
+        internal virtual ItemDisplayRuleDict AddItemDisplays() => new ItemDisplayRuleDict(Array.Empty<ItemDisplayRule>());
     }
 }
