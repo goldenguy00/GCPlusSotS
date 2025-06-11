@@ -8,7 +8,7 @@ namespace GoldenCoastPlusRevived.Items
     public abstract class ItemBase<T> : ItemBase where T : ItemBase<T>
     {
         public static T instance { get; private set; }
-        public static ItemIndex ItemIndex => ItemCatalog.FindItemIndex(instance?.name);
+        public static ItemIndex ItemIndex => instance?.itemDef?.itemIndex ?? ItemIndex.None;
 
         public ItemBase(bool enabled) : base(enabled)
         {
@@ -26,6 +26,7 @@ namespace GoldenCoastPlusRevived.Items
             if (!enabled)
                 return;
 
+            AddTokens();
             AddItem();
             AddHooks();
         }

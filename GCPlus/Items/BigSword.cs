@@ -33,12 +33,10 @@ namespace GoldenCoastPlusRevived.Items
         public static ConfigEntry<float> SwordChance { get; set; }
         public static ConfigEntry<float> SwordProcCoeff { get; set; }
 
-        internal static R2API.ModdedProcType swordProcType;
+        internal static ModdedProcType swordProcType = ProcTypeAPI.ReserveProcType();
 
         internal override void AddItem()
         {
-            swordProcType = ProcTypeAPI.ReserveProcType();
-
             GCPAssets.SwordProjectile = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldPreFistProjectile_prefab).WaitForCompletion().InstantiateClone("GCPSwordProjectile", true);
             GCPAssets.SwordProjectile.GetComponent<ProjectileController>().procCoefficient = BigSword.SwordProcCoeff.Value;
             GCPAssets.SwordProjectile.GetComponent<ProjectileImpactExplosion>().blastProcCoefficient = BigSword.SwordProcCoeff.Value;
@@ -63,6 +61,8 @@ namespace GoldenCoastPlusRevived.Items
             }
 
             GCPAssets.BigSwordPrefab.AddComponent<ItemDisplay>().rendererInfos = [.. infos];
+            GCPAssets.BigSwordPrefab.AddComponent<ModelPanelParameters>().focusPointTransform = new GameObject("FocusPoint").transform;
+            GCPAssets.BigSwordPrefab.GetComponent<ModelPanelParameters>().cameraPositionTransform = new GameObject("CameraPosition").transform;
 
             base.AddItem();
 
@@ -95,7 +95,8 @@ namespace GoldenCoastPlusRevived.Items
             if (itemCount > 0 && !damageInfo.procChainMask.HasModdedProc(swordProcType) && Util.CheckRoll(SwordChance.Value * damageInfo.procCoefficient, attackerBody.master))
             {
                 var damage = Util.OnHitProcDamage(damageInfo.damage, attackerBody.damage, SwordDamage.Value * (float)itemCount);
-                damageInfo.procChainMask.AddModdedProc(swordProcType);
+                var mask = damageInfo.procChainMask;
+                mask.AddModdedProc(swordProcType);
 
                 Physics.Raycast(damageInfo.position, Vector3.down, out var raycastHit, float.PositiveInfinity, LayerIndex.world.mask);
 
@@ -104,13 +105,13 @@ namespace GoldenCoastPlusRevived.Items
                     projectilePrefab = GCPAssets.SwordProjectile,
                     position = raycastHit.point,
                     rotation = Quaternion.identity,
-                    procChainMask = damageInfo.procChainMask,
+                    procChainMask = mask,
                     target = victim,
                     owner = damageInfo.attacker,
                     damage = damage,
                     crit = damageInfo.crit,
                     force = 10000f,
-                    damageColorIndex = (DamageColorIndex)3,
+                    damageColorIndex = DamageColorIndex.Item,
                     fuseOverride = 0.5f
                 });
             }

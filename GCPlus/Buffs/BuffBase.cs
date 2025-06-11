@@ -8,7 +8,7 @@ namespace GoldenCoastPlusRevived.Buffs
     public abstract class BuffBase<T> : BuffBase where T : BuffBase<T>
     {
         public static T instance { get; private set; }
-        public static BuffIndex BuffIndex => BuffCatalog.FindBuffIndex(instance?.name);
+        public static BuffIndex BuffIndex => instance?.buffDef?.buffIndex ?? BuffIndex.None;
 
         public BuffBase(bool enabled) : base(enabled)
         {
