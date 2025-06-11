@@ -18,14 +18,17 @@ namespace GoldenCoastPlusRevived.Modules
             if (!PluginConfig.FightChanges.Value)
                 return;
 
-            On.RoR2.GoldshoresMissionController.Awake += GoldshoresMissionController_Start;
+            On.RoR2.GoldshoresMissionController.Awake += GoldshoresMissionController_Awake;
             On.EntityStates.Missions.Goldshores.GoldshoresBossfight.OnEnter += GoldshoresBossfight_OnEnter;
             On.EntityStates.Missions.Goldshores.GoldshoresBossfight.OnExit += GoldshoresBossfight_OnExit;
             On.EntityStates.Missions.Goldshores.GoldshoresBossfight.SetBossImmunity += GoldshoresBossfight_SetBossImmunity;
             IL.EntityStates.Missions.Goldshores.GoldshoresBossfight.ServerFixedUpdate += GoldshoresBossfight_ServerFixedUpdate;
             On.EntityStates.TitanMonster.FireGoldFist.PlacePredictedAttack += FireGoldFist_PlacePredictedAttack;
-
-            GoldshoresBossfight.shieldRemovalDuration = 20f;
+        }
+        private static void GoldshoresMissionController_Awake(On.RoR2.GoldshoresMissionController.orig_Awake orig, GoldshoresMissionController self)
+        {
+            self.beaconsToSpawnOnMap = 4;
+            orig(self);
         }
 
         private static void GoldshoresBossfight_OnExit(On.EntityStates.Missions.Goldshores.GoldshoresBossfight.orig_OnExit orig, GoldshoresBossfight self)
@@ -33,7 +36,20 @@ namespace GoldenCoastPlusRevived.Modules
             FireGoldFist.fistCount = 6;
             FireGoldMegaLaser.projectileFireFrequency = 8f;
             RechargeRocks.rockControllerPrefab.GetComponent<TitanRockController>().fireInterval = 1f;
+
             orig(self);
+        }
+
+        private static void GoldshoresBossfight_OnEnter(On.EntityStates.Missions.Goldshores.GoldshoresBossfight.orig_OnEnter orig, GoldshoresBossfight self)
+        {
+            FireGoldFist.fistCount = 6;
+            FireGoldMegaLaser.projectileFireFrequency = 8f;
+            RechargeRocks.rockControllerPrefab.GetComponent<TitanRockController>().fireInterval = 1f;
+            GoldshoresBossfight.shieldRemovalDuration = PluginConfig.BossVulnerabilityTime.Value;
+
+            orig(self);
+
+            self.bossInvulnerabilityStartTime = Run.FixedTimeStamp.now + GoldshoresBossfight.shieldRemovalDuration;
         }
 
 
@@ -125,18 +141,6 @@ namespace GoldenCoastPlusRevived.Modules
             }
 
             return hasPassed;
-        }
-
-        private static void GoldshoresBossfight_OnEnter(On.EntityStates.Missions.Goldshores.GoldshoresBossfight.orig_OnEnter orig, GoldshoresBossfight self)
-        {
-            orig.Invoke(self);
-            self.bossInvulnerabilityStartTime = Run.FixedTimeStamp.now + GoldshoresBossfight.shieldRemovalDuration;
-        }
-
-        private static void GoldshoresMissionController_Start(On.RoR2.GoldshoresMissionController.orig_Awake orig, GoldshoresMissionController self)
-        {
-            self.beaconsToSpawnOnMap = 4;
-            orig.Invoke(self);
         }
 
         private static void FireGoldFist_PlacePredictedAttack(On.EntityStates.TitanMonster.FireGoldFist.orig_PlacePredictedAttack orig, FireGoldFist self)

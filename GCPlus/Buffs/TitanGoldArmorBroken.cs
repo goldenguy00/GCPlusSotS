@@ -23,7 +23,7 @@ namespace GoldenCoastPlusRevived.Buffs
         private static void HealthComponent_TakeDamageProcess(On.RoR2.HealthComponent.orig_TakeDamageProcess orig, HealthComponent self, DamageInfo damageInfo)
         {
             if (self.body && self.body.HasBuff(TitanGoldArmorBroken.BuffIndex))
-                damageInfo.damage *= PluginConfig.AurelioniteArmorBrokenMult.Value;
+                damageInfo.damage *= PluginConfig.BossArmorBrokenMult.Value;
 
             orig(self, damageInfo);
         }

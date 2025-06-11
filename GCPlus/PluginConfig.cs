@@ -7,8 +7,8 @@ namespace GoldenCoastPlusRevived
     public static class PluginConfig
     {
         public static ConfigEntry<bool> FightChanges { get; set; }
-        public static ConfigEntry<int> AurelioniteBossVulnerabilityTime { get; set; }
-        public static ConfigEntry<float> AurelioniteArmorBrokenMult { get; set; }
+        public static ConfigEntry<int> BossVulnerabilityTime { get; set; }
+        public static ConfigEntry<float> BossArmorBrokenMult { get; set; }
         public static ConfigEntry<float> AurelioniteBlessingGoldGain { get; set; }
 
         internal static void Init(ConfigFile cfg)
@@ -27,14 +27,14 @@ namespace GoldenCoastPlusRevived
                 true, 
                 Extensions.ConfigFlags.RestartRequired);
 
-            AurelioniteBossVulnerabilityTime = cfg.BindOptionSlider(section,
+            BossVulnerabilityTime = cfg.BindOptionSlider(section,
                 "Vulnerability Time",
                 "Time in seconds that Aurelionite becomes vulnerable per phase",
                 20,
-                10, 120,
+                0, 100,
                 Extensions.ConfigFlags.ServerSided);
 
-            AurelioniteArmorBrokenMult = cfg.BindOptionSlider(section,
+            BossArmorBrokenMult = cfg.BindOptionSlider(section,
                 "Damage taken multiplier debuff",
                 "Adjust the boss's damage taken multiplier as decimal.",
                 1.5f,
