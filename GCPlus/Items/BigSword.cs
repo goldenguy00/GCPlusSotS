@@ -1,4 +1,5 @@
-﻿using BepInEx.Configuration;
+﻿using System.Collections.Generic;
+using BepInEx.Configuration;
 using GoldenCoastPlusRevived.Modules;
 using R2API;
 using RoR2;
@@ -36,21 +37,34 @@ namespace GoldenCoastPlusRevived.Items
 
         internal override void AddItem()
         {
-            base.AddItem();
-            
             swordProcType = ProcTypeAPI.ReserveProcType();
 
-            GCPAssets.SwordProjectile = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldPreFistProjectile_prefab).WaitForCompletion().InstantiateClone("GCPGCPAssets.swordProjectile", true);
+            GCPAssets.SwordProjectile = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldPreFistProjectile_prefab).WaitForCompletion().InstantiateClone("GCPSwordProjectile", true);
             GCPAssets.SwordProjectile.GetComponent<ProjectileController>().procCoefficient = BigSword.SwordProcCoeff.Value;
             GCPAssets.SwordProjectile.GetComponent<ProjectileImpactExplosion>().blastProcCoefficient = BigSword.SwordProcCoeff.Value;
 
             ContentAddition.AddProjectile(GCPAssets.SwordProjectile);
 
-            var mdl = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldBody_prefab).WaitForCompletion().GetComponent<ModelLocator>().modelTransform;
-            GCPAssets.BigSwordPrefab = mdl.Find("TitanArmature/ROOT/base/stomach/chest/upper_arm.r/lower_arm.r/hand.r/RightFist").gameObject.InstantiateClone("PickupBigSword", false);
+            var model = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldBody_prefab).WaitForCompletion().GetComponent<ModelLocator>().modelTransform;
+            GCPAssets.BigSwordPrefab = model.Find("TitanArmature/ROOT/base/stomach/chest/upper_arm.r/lower_arm.r/hand.r/RightFist").gameObject.InstantiateClone("GCPPickupBigSword", false);
+
             var transform = GCPAssets.BigSwordPrefab.transform.Find("Sword");
             transform.transform.localPosition = new Vector3(4f, -5.5f, 0f);
             transform.transform.localEulerAngles = new Vector3(135f, 270f, 0f);
+
+            var infos = new List<CharacterModel.RendererInfo>();
+            foreach (var renderer in GCPAssets.BigSwordPrefab.GetComponentsInChildren<Renderer>())
+            {
+                infos.Add(new CharacterModel.RendererInfo
+                {
+                    renderer = renderer,
+                    defaultMaterial = renderer.material
+                });
+            }
+
+            GCPAssets.BigSwordPrefab.AddComponent<ItemDisplay>().rendererInfos = [.. infos];
+
+            base.AddItem();
 
             var dt = Addressables.LoadAssetAsync<ExplicitPickupDropTable>(RoR2_Base_Titan.dtBossTitanGold_asset).WaitForCompletion();
             HG.ArrayUtils.ArrayAppend(ref dt.pickupEntries, new ExplicitPickupDropTable.PickupDefEntry

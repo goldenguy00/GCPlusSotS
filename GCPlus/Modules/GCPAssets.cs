@@ -34,6 +34,7 @@ namespace GoldenCoastPlusRevived.Modules
 
         private static Sprite RegisterIcon(string name)
         {
+            Sprite ret = null;
             try
             {
                 using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"GoldenCoastPlusRevived.Assets.{name}.png");
@@ -42,15 +43,18 @@ namespace GoldenCoastPlusRevived.Modules
                 stream.Read(buffer);
 
                 var tex2D = new Texture2D(2, 2);
-                if (tex2D.LoadImage(buffer))
-                    return Sprite.Create(tex2D, new Rect(Vector2.zero, new Vector2(128, 128)), new Vector2(0.5f, 0.5f));
+                tex2D.LoadImage(buffer);
+                ret = Sprite.Create(tex2D, new Rect(Vector2.zero, new Vector2(128, 128)), new Vector2(0.5f, 0.5f));
+
+                if (ret == null)
+                    throw new System.NullReferenceException();
             }
             catch (System.Exception e)
             {
                 Log.Error("Unable to load " + name);
                 Log.Error(e);
             }
-            return null;
+            return ret;
         }
     }
 }

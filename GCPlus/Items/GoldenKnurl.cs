@@ -36,31 +36,33 @@ namespace GoldenCoastPlusRevived.Items
 
         internal override void AddItem()
         {
-            base.AddItem();
+            var mat = new Material(Addressables.LoadAssetAsync<Material>(RoR2_Base_Titan.matTitanGold_mat).WaitForCompletion());
 
-            var material = Object.Instantiate(Addressables.LoadAssetAsync<Material>(RoR2_Base_Titan.matTitanGold_mat).WaitForCompletion());
-            GCPAssets.GoldenKnurlPrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Knurl.PickupKnurl_prefab).WaitForCompletion().InstantiateClone("PickupGoldenKnurl", false);
-            var componentsInChildren = GCPAssets.GoldenKnurlPrefab.GetComponentsInChildren<Renderer>();
-            foreach (var renderer in componentsInChildren)
+            GCPAssets.GoldenKnurlPrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Knurl.PickupKnurl_prefab).WaitForCompletion().InstantiateClone("GCPPickupGoldenKnurl", false);
+            foreach (var renderer in GCPAssets.GoldenKnurlPrefab.GetComponentsInChildren<Renderer>())
             {
-                renderer.material = material;
+                renderer.material = mat;
             }
-            GCPAssets.GoldenKnurlFollowerPrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Knurl.DisplayKnurl_prefab).WaitForCompletion().InstantiateClone("GCPAssets.GoldenKnurlFollowerPrefab", false);
+
+            GCPAssets.GoldenKnurlFollowerPrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Knurl.DisplayKnurl_prefab).WaitForCompletion().InstantiateClone("GCPGoldenKnurlFollowerPrefab", false);
             GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("mdlKnurl").gameObject.SetActive(false);
             GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("KnurlPebbleParticles").gameObject.SetActive(false);
 
-            var gameObject = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Knurl.DisplayKnurl_prefab).WaitForCompletion().transform.Find("mdlKnurl").gameObject.InstantiateClone("GoldenKnurlFollowerModel", false);
-            var component = gameObject.GetComponent<Renderer>();
-            component.material = material;
-            gameObject.transform.parent = GCPAssets.GoldenKnurlFollowerPrefab.transform;
-            GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GoldenKnurlFollowerModel").localPosition = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("mdlKnurl").localPosition;
-            GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GoldenKnurlFollowerModel").localEulerAngles = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("mdlKnurl").localEulerAngles;
-            var gameObject2 = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Knurl.DisplayKnurl_prefab).WaitForCompletion().transform.Find("KnurlPebbleParticles").gameObject.InstantiateClone("GoldenKnurlFollowerPebbles", false);
-            var component2 = gameObject2.GetComponent<Renderer>();
-            component2.material = material;
-            gameObject2.transform.parent = GCPAssets.GoldenKnurlFollowerPrefab.transform;
-            GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GoldenKnurlFollowerPebbles").localPosition = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("KnurlPebbleParticles").localPosition;
-            GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GoldenKnurlFollowerPebbles").localEulerAngles = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("KnurlPebbleParticles").localEulerAngles;
+            var followerModel = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Knurl.DisplayKnurl_prefab).WaitForCompletion().transform.Find("mdlKnurl").gameObject.InstantiateClone("GCPGoldenKnurlFollowerModel", false);
+            followerModel.GetComponent<Renderer>().material = mat;
+            followerModel.transform.parent = GCPAssets.GoldenKnurlFollowerPrefab.transform;
+
+            GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GCPGoldenKnurlFollowerModel").localPosition = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("mdlKnurl").localPosition;
+            GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GCPGoldenKnurlFollowerModel").localEulerAngles = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("mdlKnurl").localEulerAngles;
+
+            var followerPebbles = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Knurl.DisplayKnurl_prefab).WaitForCompletion().transform.Find("KnurlPebbleParticles").gameObject.InstantiateClone("GCPGoldenKnurlFollowerPebbles", false);
+            followerPebbles.GetComponent<Renderer>().material = mat;
+            followerPebbles.transform.parent = GCPAssets.GoldenKnurlFollowerPrefab.transform;
+
+            GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GCPGoldenKnurlFollowerPebbles").localPosition = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("KnurlPebbleParticles").localPosition;
+            GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GCPGoldenKnurlFollowerPebbles").localEulerAngles = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("KnurlPebbleParticles").localEulerAngles;
+
+            base.AddItem();
 
             var dt = Addressables.LoadAssetAsync<ExplicitPickupDropTable>(RoR2_Base_Titan.dtBossTitanGold_asset).WaitForCompletion();
             HG.ArrayUtils.ArrayAppend(ref dt.pickupEntries, new ExplicitPickupDropTable.PickupDefEntry

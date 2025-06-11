@@ -1,4 +1,5 @@
-﻿using BepInEx.Configuration;
+﻿using System.Collections.Generic;
+using BepInEx.Configuration;
 using GoldenCoastPlusRevived.Modules;
 using R2API;
 using RoR2;
@@ -36,20 +37,26 @@ namespace GoldenCoastPlusRevived.Items
 
         internal override void AddItem()
         {
-            base.AddItem();
+            GCPAssets.LaserEyePrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Meteor.PickupMeteor_prefab).WaitForCompletion().InstantiateClone("GCPPickupLaserEye", false);
+            GCPAssets.LaserEyePrefab.GetComponentInChildren<Renderer>().materials =
+            [   
+                new Material(Addressables.LoadAssetAsync<Material>(RoR2_Base_NearbyDamageBonus.matDiamond_mat).WaitForCompletion()) { color = Color.red },
+                new Material(Addressables.LoadAssetAsync<Material>(RoR2_Base_Titan.matTitanGold_mat).WaitForCompletion())
+            ];
 
-            var material2 = Object.Instantiate(Addressables.LoadAssetAsync<Material>(RoR2_Base_NearbyDamageBonus.matDiamond_mat).WaitForCompletion());
-            material2.color = Color.red;
-
-            var material3 = Object.Instantiate(Addressables.LoadAssetAsync<Material>(RoR2_Base_Titan.matTitanGold_mat).WaitForCompletion());
-
-            GCPAssets.LaserEyePrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Meteor.PickupMeteor_prefab).WaitForCompletion().InstantiateClone("PickupLaserEye", false);
-            var componentInChildren = GCPAssets.LaserEyePrefab.GetComponentInChildren<Renderer>();
-            componentInChildren.materials = new Material[]
+            var infos = new List<CharacterModel.RendererInfo>();
+            foreach (var renderer in GCPAssets.LaserEyePrefab.GetComponentsInChildren<Renderer>())
             {
-                material2,
-                material3
-            };
+                infos.Add(new CharacterModel.RendererInfo
+                {
+                    renderer = renderer,
+                    defaultMaterial = renderer.material
+                });
+            }
+
+            GCPAssets.LaserEyePrefab.AddComponent<ItemDisplay>().rendererInfos = [.. infos];
+
+            base.AddItem();
 
             var dt = Addressables.LoadAssetAsync<ExplicitPickupDropTable>(RoR2_Base_Titan.dtBossTitanGold_asset).WaitForCompletion();
             HG.ArrayUtils.ArrayAppend(ref dt.pickupEntries, new ExplicitPickupDropTable.PickupDefEntry
