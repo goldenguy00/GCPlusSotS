@@ -35,6 +35,8 @@ namespace GoldenCoastPlusRevived.Modules
         {
             FireGoldFist.fistCount = 6;
             FireGoldMegaLaser.projectileFireFrequency = 8f;
+            FireGoldMegaLaser.minimumDuration = 3f;
+            FireGoldMegaLaser.maximumDuration = 8f;
             RechargeRocks.rockControllerPrefab.GetComponent<TitanRockController>().fireInterval = 1f;
 
             orig(self);
@@ -44,6 +46,8 @@ namespace GoldenCoastPlusRevived.Modules
         {
             FireGoldFist.fistCount = 6;
             FireGoldMegaLaser.projectileFireFrequency = 8f;
+            FireGoldMegaLaser.minimumDuration = 2f;
+            FireGoldMegaLaser.maximumDuration = 3f;
             RechargeRocks.rockControllerPrefab.GetComponent<TitanRockController>().fireInterval = 1f;
             GoldshoresBossfight.shieldRemovalDuration = PluginConfig.BossVulnerabilityTime.Value;
 
