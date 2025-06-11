@@ -110,7 +110,7 @@ namespace GoldenCoastPlusRevived.Items
                     owner = damageInfo.attacker,
                     damage = damage,
                     crit = damageInfo.crit,
-                    force = 10000f,
+                    force = 1000f,
                     damageColorIndex = DamageColorIndex.Item,
                     fuseOverride = 0.5f
                 });
