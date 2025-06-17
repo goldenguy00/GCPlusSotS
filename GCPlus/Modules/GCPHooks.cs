@@ -149,8 +149,8 @@ namespace GoldenCoastPlusRevived.Modules
 
         private static void FireGoldFist_PlacePredictedAttack(On.EntityStates.TitanMonster.FireGoldFist.orig_PlacePredictedAttack orig, FireGoldFist self)
         {
-            bool hit4 = FireGoldFist.fistCount == 998;
-            bool hit8 = FireGoldFist.fistCount == 999;
+            bool hit4 = FireGoldFist.fistCount == 999;
+            bool hit8 = FireGoldFist.fistCount == 998;
             if (!hit4 && !hit8)
             {
                 orig(self);

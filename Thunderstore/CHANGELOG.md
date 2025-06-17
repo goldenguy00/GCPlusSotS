@@ -1,3 +1,12 @@
+`1.2.2`
+
+- Fixed Boss attacks being out of order
+- Fixed Laser Eye
+
+`1.2.1`
+
+- Bugfix lasereye NRE
+
 `1.2.0`
 
 - Moved to new maintainer, full backend rewrite.

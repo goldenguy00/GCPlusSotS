@@ -21,6 +21,9 @@ namespace GoldenCoastPlusRevived.Modules
         public static Sprite TitanGoldArmorBrokenIcon;
         public static Sprite HiddenGoldBuffIcon;
 
+        public static GameObject tracerGolem;
+        public static GameObject tracerGolem2;
+
         public static void RegisterAssets()
         {
             BigSwordIcon = RegisterIcon("Titanic_Greatsword");
@@ -30,6 +33,8 @@ namespace GoldenCoastPlusRevived.Modules
 
             LaserEyeReadyIcon = Object.Instantiate(Addressables.LoadAssetAsync<BuffDef>(RoR2_Base_Merc.bdMercExpose_asset).WaitForCompletion().iconSprite);
             TitanGoldArmorBrokenIcon = Object.Instantiate(Addressables.LoadAssetAsync<BuffDef>(RoR2_Base_ArmorReductionOnHit.bdPulverized_asset).WaitForCompletion().iconSprite);
+            Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Golem.TracerGolem_prefab).Completed += (task) => tracerGolem = task.Result;
+            Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Golem.ExplosionGolem_prefab).Completed += (task) => tracerGolem2 = task.Result;
         }
 
         private static Sprite RegisterIcon(string name)
