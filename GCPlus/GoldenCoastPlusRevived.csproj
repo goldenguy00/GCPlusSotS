@@ -7,11 +7,11 @@
   </PropertyGroup>
     
   <ItemGroup>
-    <EmbeddedResource Include="Properties\Assets\Aurelionite_s_Blessing.png" />
-    <EmbeddedResource Include="Properties\Assets\Golden_Knurl.png" />
-    <EmbeddedResource Include="Properties\Assets\Gold_Elite_Icon.png" />
-    <EmbeddedResource Include="Properties\Assets\Guardian_s_Eye.png" />
-    <EmbeddedResource Include="Properties\Assets\Titanic_Greatsword.png" />
+    <Resource Include="Properties\Assets\Aurelionite_s_Blessing.png" />
+    <Resource Include="Properties\Assets\Golden_Knurl.png" />
+    <Resource Include="Properties\Assets\Gold_Elite_Icon.png" />
+    <Resource Include="Properties\Assets\Guardian_s_Eye.png" />
+    <Resource Include="Properties\Assets\Titanic_Greatsword.png" />
   </ItemGroup>
 
   <ItemGroup>
