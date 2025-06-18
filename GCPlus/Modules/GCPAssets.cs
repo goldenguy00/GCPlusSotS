@@ -27,10 +27,18 @@ namespace GoldenCoastPlusRevived.Modules
 
         public static void RegisterAssets()
         {
-            BigSwordIcon = RegisterIcon("Titanic_Greatsword", new Vector2(512, 512));
-            GoldenKnurlIcon = RegisterIcon("Golden_Knurl", new Vector2(256, 256));
-            LaserEyeIcon = RegisterIcon("Guardian_s_Eye", new Vector2(512, 512));
-            HiddenGoldBuffIcon = RegisterIcon("Aurelionite_s_Blessing", new Vector2(128, 128));
+            foreach (var n in Assembly.GetExecutingAssembly().GetManifestResourceNames())
+            {
+                Log.Warning(n);
+                if (n.Contains("Titanic_Greatsword"))
+                    BigSwordIcon = RegisterIcon(n, new Vector2(512, 512));
+                if (n.Contains("Golden_Knurl"))
+                    GoldenKnurlIcon = RegisterIcon(n, new Vector2(256, 256));
+                if (n.Contains("Guardian_s_Eye"))
+                    LaserEyeIcon = RegisterIcon(n, new Vector2(512, 512));
+                if (n.Contains("Aurelionite_s_Blessing"))
+                    HiddenGoldBuffIcon = RegisterIcon(n, new Vector2(128, 128));
+            }
 
             LaserEyeReadyIcon = Object.Instantiate(Addressables.LoadAssetAsync<BuffDef>(RoR2_Base_Merc.bdMercExpose_asset).WaitForCompletion().iconSprite);
             TitanGoldArmorBrokenIcon = Object.Instantiate(Addressables.LoadAssetAsync<BuffDef>(RoR2_Base_ArmorReductionOnHit.bdPulverized_asset).WaitForCompletion().iconSprite);
@@ -43,13 +51,13 @@ namespace GoldenCoastPlusRevived.Modules
             Sprite ret = null;
             try
             {
-                using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"GoldenCoastPlusRevived.Assets.{name}.png");
+                using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
                 using var reader = new ResourceReader(stream);
                 reader.GetResourceData(name, out _, out var buffer);
 
                 var tex2D = new Texture2D((int)size.x,  (int)size.y);
                 tex2D.LoadImage(buffer);
-                ret = Sprite.Create(tex2D, new Rect(Vector2.zero, size), new Vector2(0.5f, 0.5f));
+                ret = Sprite.Create(tex2D, new Rect(Vector2.zero, new Vector2(128, 128)), new Vector2(0.5f, 0.5f));
 
                 if (ret == null)
                     throw new System.NullReferenceException();
