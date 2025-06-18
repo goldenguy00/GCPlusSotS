@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using BepInEx.Configuration;
@@ -60,26 +61,71 @@ namespace GoldenCoastPlusRevived
             foreach (var key in cfg.Keys)
             {
                 var entry = cfg[key];
-                if (entry is null)
-                    continue;
+                var backupEntry = BindBackup(cfg, entry);
 
-                var newDef = new ConfigDefinition(Regex.Replace(cfg.ConfigFilePath, "\\W", "") + " : " + entry.Definition.Section, entry.Definition.Key);
-                var newDesc = new ConfigDescription(entry.Description.Description, entry.Description.AcceptableValues);
-                ConfigEntryBase backupVal = _backupConfig.Bind(newDef, entry.DefaultValue, newDesc);
-
-                if (!ConfigEqual(backupVal.DefaultValue, backupVal.BoxedValue))
+                if (!ConfigEqual(backupEntry.DefaultValue, backupEntry.BoxedValue))
                 {
                     Log.Debug("Config Updated: " + entry.Definition.Section + " : " + entry.Definition.Key + " from " + entry.BoxedValue + " to " + entry.DefaultValue);
                     if (_versionChanged)
                     {
                         Log.Debug("Autosyncing...");
                         entry.BoxedValue = entry.DefaultValue;
-                        backupVal.BoxedValue = backupVal.DefaultValue;
+                        backupEntry.BoxedValue = backupEntry.DefaultValue;
                     }
                 }
             }
 
             cfg.WipeConfig();
+        }
+
+        private static ConfigEntryBase BindBackup(ConfigFile cfg, ConfigEntryBase entry)
+        {
+            var newDef = new ConfigDefinition(Regex.Replace(cfg.ConfigFilePath, "\\W", "") + " : " + entry.Definition.Section, entry.Definition.Key);
+            var newDesc = new ConfigDescription(entry.Description.Description, entry.Description.AcceptableValues);
+
+            if (entry.SettingType == typeof(string))
+                return _backupConfig.Bind(newDef, (string)entry.DefaultValue, newDesc);
+
+            if (entry.SettingType == typeof(bool))
+                return _backupConfig.Bind(newDef, (bool)entry.DefaultValue, newDesc);
+
+            if (entry.SettingType == typeof(sbyte))
+                return _backupConfig.Bind(newDef, (sbyte)entry.DefaultValue, newDesc);
+
+            if (entry.SettingType == typeof(byte))
+                return _backupConfig.Bind(newDef, (byte)entry.DefaultValue, newDesc);
+
+            if (entry.SettingType == typeof(short))
+                return _backupConfig.Bind(newDef, (short)entry.DefaultValue, newDesc);
+
+            if (entry.SettingType == typeof(ushort))
+                return _backupConfig.Bind(newDef, (ushort)entry.DefaultValue, newDesc);
+
+            if (entry.SettingType == typeof(int))
+                return _backupConfig.Bind(newDef, (int)entry.DefaultValue, newDesc);
+
+            if (entry.SettingType == typeof(uint))
+                return _backupConfig.Bind(newDef, (uint)entry.DefaultValue, newDesc);
+
+            if (entry.SettingType == typeof(long))
+                return _backupConfig.Bind(newDef, (long)entry.DefaultValue, newDesc);
+
+            if (entry.SettingType == typeof(ulong))
+                return _backupConfig.Bind(newDef, (ulong)entry.DefaultValue, newDesc);
+
+            if (entry.SettingType == typeof(float))
+                return _backupConfig.Bind(newDef, (float)entry.DefaultValue, newDesc);
+
+            if (entry.SettingType == typeof(double))
+                return _backupConfig.Bind(newDef, (double)entry.DefaultValue, newDesc);
+
+            if (entry.SettingType == typeof(decimal))
+                return _backupConfig.Bind(newDef, (decimal)entry.DefaultValue, newDesc);
+
+            if (entry.SettingType == typeof(Enum))
+                return _backupConfig.Bind(newDef, entry.DefaultValue as Enum, newDesc);
+
+            throw new InvalidOperationException("Cannot convert to type " + entry.SettingType.Name);
         }
 
         private static bool ConfigEqual(object a, object b)
