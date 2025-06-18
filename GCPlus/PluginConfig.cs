@@ -1,11 +1,19 @@
-﻿using BepInEx.Configuration;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using BepInEx.Configuration;
 using GoldenCoastPlusRevived.Items;
+using HarmonyLib;
 using MiscFixes.Modules;
 
 namespace GoldenCoastPlusRevived
 {
     public static class PluginConfig
     {
+        private static ConfigFile _backupConfig;
+        private static bool _versionChanged;
+        public static ConfigEntry<bool> AutoConfig { get; set; }
+        public static ConfigEntry<string> LatestVersion { get; set; }
         public static ConfigEntry<bool> FightChanges { get; set; }
         public static ConfigEntry<int> BossVulnerabilityTime { get; set; }
         public static ConfigEntry<float> BossArmorBrokenMult { get; set; }
@@ -13,10 +21,76 @@ namespace GoldenCoastPlusRevived
 
         internal static void Init(ConfigFile cfg)
         {
-            BindFightChanges(cfg, "Aurelionite Fight Changes");
-            BindTitanicGreatsword(cfg, "Titanic Greatsword");
-            BindGoldenKnurl(cfg, "Golden Knurl");
-            BindGuardiansEye(cfg, "Guardians Eye");
+            BindConfig(cfg, "1. Main");
+            BindFightChanges(cfg, "2. Aurelionite Fight Changes");
+            BindTitanicGreatsword(cfg, "3. Titanic Greatsword");
+            BindGoldenKnurl(cfg, "4. Golden Knurl");
+            BindGuardiansEye(cfg, "5. Guardians Eye");
+            ValidateConfig(cfg);
+        }
+
+        private static void BindConfig(ConfigFile cfg, string section)
+        {
+            AutoConfig = cfg.BindOption(section,
+                "Enable Auto Config Sync",
+                "Disabling this would stop GCP from syncing config whenever a new version is found.",
+                true,
+                Extensions.ConfigFlags.RestartRequired);
+
+            bool _preVersioning = !((Dictionary<ConfigDefinition, string>)AccessTools.DeclaredPropertyGetter(typeof(ConfigFile), "OrphanedEntries").Invoke(cfg, null)).Keys.Any(x => x.Key == "Latest Version");
+
+            LatestVersion = cfg.BindOption(section,
+                "Latest Version", 
+                "DO NOT CHANGE THIS",
+                GoldenCoastPlusPlugin.MOD_VERSON);
+
+            if (AutoConfig.Value && (_preVersioning || (LatestVersion.Value != GoldenCoastPlusPlugin.MOD_VERSON)))
+            {
+                LatestVersion.Value = GoldenCoastPlusPlugin.MOD_VERSON;
+                _versionChanged = true;
+                Log.Info("Config Autosync Enabled.");
+            }
+        }
+
+        private static void ValidateConfig(ConfigFile cfg)
+        {
+            _backupConfig = new ConfigFile(System.IO.Path.Combine(BepInEx.Paths.ConfigPath, $"{GoldenCoastPlusPlugin.MOD_GUID}.Backup.cfg"), true);
+            _backupConfig.Bind(": DO NOT MODIFY THIS FILES CONTENTS :", ": DO NOT MODIFY THIS FILES CONTENTS :", ": DO NOT MODIFY THIS FILES CONTENTS :", ": DO NOT MODIFY THIS FILES CONTENTS :");
+
+            foreach (var key in cfg.Keys)
+            {
+                var entry = cfg[key];
+                if (entry is null)
+                    continue;
+
+                var newDef = new ConfigDefinition(Regex.Replace(cfg.ConfigFilePath, "\\W", "") + " : " + entry.Definition.Section, entry.Definition.Key);
+                var newDesc = new ConfigDescription(entry.Description.Description, entry.Description.AcceptableValues);
+                ConfigEntryBase backupVal = _backupConfig.Bind(newDef, entry.DefaultValue, newDesc);
+
+                if (!ConfigEqual(backupVal.DefaultValue, backupVal.BoxedValue))
+                {
+                    Log.Debug("Config Updated: " + entry.Definition.Section + " : " + entry.Definition.Key + " from " + entry.BoxedValue + " to " + entry.DefaultValue);
+                    if (_versionChanged)
+                    {
+                        Log.Debug("Autosyncing...");
+                        entry.BoxedValue = entry.DefaultValue;
+                        backupVal.BoxedValue = backupVal.DefaultValue;
+                    }
+                }
+            }
+
+            cfg.WipeConfig();
+        }
+
+        private static bool ConfigEqual(object a, object b)
+        {
+            if (a?.Equals(b) == true)
+                return true;
+
+            if (float.TryParse(a?.ToString(), out var fa) && float.TryParse(b?.ToString(), out var fb))
+                return UnityEngine.Mathf.Abs(fa - fb) < 0.0001;
+
+            return false;
         }
 
         private static void BindFightChanges(ConfigFile cfg, string section)
@@ -81,7 +155,6 @@ namespace GoldenCoastPlusRevived
         
         private static void BindGoldenKnurl(ConfigFile cfg, string section)
         {
-
             GoldenKnurl.EnableKnurl = cfg.BindOption(section, 
                 "Enable Golden Knurl",
                 "Should Golden Knurl be enabled?", 
@@ -118,9 +191,9 @@ namespace GoldenCoastPlusRevived
 
             LaserEye.EyeDamage = cfg.BindOptionSlider(section,
                 "Guardians Eye Damage",
-                "Adjust how much damage Guardian's Eye does, as a decimal.",
-                2.5f, 
-                0f, 10f,
+                "Adjust how much % base damage Guardian's Eye does per target, where 1 == 100% base damage.",
+                6f, 
+                0f, 25f,
                 Extensions.ConfigFlags.ServerSided);
 
             LaserEye.EyeBlastProcCoeff = cfg.BindOptionSlider(section, 
@@ -133,15 +206,8 @@ namespace GoldenCoastPlusRevived
             LaserEye.EyeStacksRequired = cfg.BindOptionSlider(section,
                 "Guardians Eye Stacks Required",
                 "Adjust how many stacks are required for Guardian's Eye to trigger.",
-                10, 
+                5, 
                 1, 20,
-                Extensions.ConfigFlags.ServerSided);
-
-            LaserEye.EyeStackTimer = cfg.BindOptionSlider(section,
-                "Time until Guardians Eye Stacks disappear",
-                "Adjust how long since last earning gold before all stacks are removed.",
-                10f,
-                1f, 60f,
                 Extensions.ConfigFlags.ServerSided);
         }
     }

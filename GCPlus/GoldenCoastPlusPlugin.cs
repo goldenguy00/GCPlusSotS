@@ -21,11 +21,8 @@ namespace GoldenCoastPlusRevived
         public const string MOD_GUID = $"com.{MOD_AUTHOR}.{MOD_NAME}";
         public const string MOD_VERSON = "1.2.2";
 
-        public static GoldenCoastPlusPlugin instance { get; private set; }
-
         public void Awake()
 		{
-            instance = this;
             Log.Init(Logger);
             PluginConfig.Init(Config);
 

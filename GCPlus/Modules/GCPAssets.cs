@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Resources;
+using System.Xml.Linq;
 using RoR2;
 using RoR2BepInExPack.GameAssetPaths;
 using UnityEngine;
@@ -27,17 +28,23 @@ namespace GoldenCoastPlusRevived.Modules
 
         public static void RegisterAssets()
         {
-            foreach (var n in Assembly.GetExecutingAssembly().GetManifestResourceNames())
+            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GoldenCoastPlusRevived.Properties.Resources.resources");
+            using var rr = new ResourceReader(stream);
+            var enumerator = rr.GetEnumerator();
+            while (enumerator.MoveNext())
             {
-                Log.Warning(n);
+                Log.Warning(enumerator.Key);
+                Log.Warning(enumerator.Value);
+                string n = enumerator.Key as string;
+                byte[] v = enumerator.Value as byte[];
                 if (n.Contains("Titanic_Greatsword"))
-                    BigSwordIcon = RegisterIcon(n, new Vector2(512, 512));
+                    BigSwordIcon = RegisterIcon(rr,n, v, new Vector2(512, 512));
                 if (n.Contains("Golden_Knurl"))
-                    GoldenKnurlIcon = RegisterIcon(n, new Vector2(256, 256));
+                    GoldenKnurlIcon = RegisterIcon(rr, n,v, new Vector2(256, 256));
                 if (n.Contains("Guardian_s_Eye"))
-                    LaserEyeIcon = RegisterIcon(n, new Vector2(512, 512));
+                    LaserEyeIcon = RegisterIcon(rr,n, v, new Vector2(512, 512));
                 if (n.Contains("Aurelionite_s_Blessing"))
-                    HiddenGoldBuffIcon = RegisterIcon(n, new Vector2(128, 128));
+                    HiddenGoldBuffIcon = RegisterIcon(rr, n,v, new Vector2(128, 128));
             }
 
             LaserEyeReadyIcon = Object.Instantiate(Addressables.LoadAssetAsync<BuffDef>(RoR2_Base_Merc.bdMercExpose_asset).WaitForCompletion().iconSprite);
@@ -46,21 +53,14 @@ namespace GoldenCoastPlusRevived.Modules
             Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Golem.ExplosionGolem_prefab).Completed += (task) => tracerGolem2 = task.Result;
         }
 
-        private static Sprite RegisterIcon(string name, Vector2 size)
+        private static Sprite RegisterIcon(ResourceReader rr, string name, byte[] buffer, Vector2 size)
         {
             Sprite ret = null;
             try
             {
-                using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
-                using var reader = new ResourceReader(stream);
-                reader.GetResourceData(name, out _, out var buffer);
-
-                var tex2D = new Texture2D((int)size.x,  (int)size.y);
+                var tex2D = new Texture2D(2, 2);
                 tex2D.LoadImage(buffer);
-                ret = Sprite.Create(tex2D, new Rect(Vector2.zero, new Vector2(128, 128)), new Vector2(0.5f, 0.5f));
-
-                if (ret == null)
-                    throw new System.NullReferenceException();
+                ret = Sprite.Create(tex2D, new Rect(Vector2.zero, size), new Vector2(0.5f, 0.5f), 1);
             }
             catch (System.Exception e)
             {
