@@ -18,7 +18,7 @@ namespace GoldenCoastPlusRevived.Items
         internal override string token => "LaserEye";
         internal override string pickup => "Collecting gold will charge up a powerful laser.";
         internal override string description => "<style=cShrine>Collecting gold</style> will charge up a <style=cDeath>powerful laser</style> and grant a <style=cIsUtility>stacking buff</style>. " +
-            "At ten stacks of this buff, the <style=cDeath>laser</style> will fire at all enemies within 30 meters, dealing <style=cIsDamage>2500%</style> <style=cStack>(+2500% per stack)</style> BASE damage.";
+            "At ten stacks of this buff, the <style=cDeath>laser</style> will fire at <style=cIsUtility>2</style> <style=cStack>(+2 per stack)</style> enemies within 100 meters, dealing <style=cIsDamage>2500%</style> BASE damage.";
         internal override string lore => "The ability to see. Designs such as this have no need to taste. They do not feel, nor smell, nor hear that which surrounds them. " +
             "They have no need.\n\n...\n\nA sad existence. Forced to follow orders. Nothing more than a servant. No feelings.\n\nPerhaps one exception. " +
             "One day, this guardian will have no one to take orders from. Will have new challenges to overcome, and new decisions to make. A proper protector for this planet.";
@@ -34,6 +34,7 @@ namespace GoldenCoastPlusRevived.Items
         public static ConfigEntry<float> EyeDamage { get; set; }
         public static ConfigEntry<int> EyeStacksRequired { get; set; }
         public static ConfigEntry<float> EyeBlastProcCoeff { get; set; }
+        public static ConfigEntry<float> EyeStackTimer { get; set; }
 
         internal override void AddItem()
         {

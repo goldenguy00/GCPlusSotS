@@ -40,6 +40,8 @@ namespace GoldenCoastPlusRevived.Items
             GCPAssets.SwordProjectile = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldPreFistProjectile_prefab).WaitForCompletion().InstantiateClone("GCPSwordProjectile", true);
             GCPAssets.SwordProjectile.GetComponent<ProjectileController>().procCoefficient = BigSword.SwordProcCoeff.Value;
             GCPAssets.SwordProjectile.GetComponent<ProjectileImpactExplosion>().blastProcCoefficient = BigSword.SwordProcCoeff.Value;
+            GCPAssets.SwordProjectile.GetComponent<ProjectileDamage>().damage = BigSword.SwordDamage.Value;
+            GCPAssets.SwordProjectile.GetComponent<ProjectileImpactExplosion>().blastDamageCoefficient = BigSword.SwordDamage.Value;
 
             ContentAddition.AddProjectile(GCPAssets.SwordProjectile);
 

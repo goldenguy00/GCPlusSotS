@@ -51,28 +51,98 @@ namespace GoldenCoastPlusRevived
 
         private static void BindTitanicGreatsword(ConfigFile cfg, string section)
         {
-            BigSword.EnableSword = cfg.BindOption(section, "Enable Titanic Greatsword", "Should Titanic Greatsword be enabled?", true, Extensions.ConfigFlags.RestartRequired);
-            BigSword.SwordDamage = cfg.BindOptionSlider(section, "Titanic Greatsword Damage", "Adjust Titanic Greatsword's damage coefficient, as a decimal.", 12.5f, 1f, 25f, Extensions.ConfigFlags.ServerSided);
-            BigSword.SwordChance = cfg.BindOptionSlider(section, "Titanic Greatsword Chance", "Adjust Titanic Greatsword's chance to proc, as a percentage.", 5f, 0f, 100f, Extensions.ConfigFlags.ServerSided);
-            BigSword.SwordProcCoeff = cfg.BindOptionSlider(section, "Titanic Greatsword Proc Coeff", "Adjust Titanic Greatsword's proc coeff.", 1f, 0f, 5f, Extensions.ConfigFlags.ServerSided);
+            BigSword.EnableSword = cfg.BindOption(section, 
+                "Enable Titanic Greatsword", 
+                "Should Titanic Greatsword be enabled?", 
+                true, 
+                Extensions.ConfigFlags.RestartRequired);
+
+            BigSword.SwordDamage = cfg.BindOptionSlider(section, 
+                "Titanic Greatsword Damage", 
+                "Adjust Titanic Greatsword's damage coefficient, as a decimal.",
+                12.5f, 
+                1f, 25f,
+                Extensions.ConfigFlags.ServerSided);
+
+            BigSword.SwordChance = cfg.BindOptionSlider(section, 
+                "Titanic Greatsword Chance", 
+                "Adjust Titanic Greatsword's chance to proc, as a percentage.",
+                5f, 
+                0f, 100f, 
+                Extensions.ConfigFlags.ServerSided);
+
+            BigSword.SwordProcCoeff = cfg.BindOptionSlider(section, 
+                "Titanic Greatsword Proc Coeff", 
+                "Adjust Titanic Greatsword's proc coeff.", 
+                1f,
+                0f, 5f, 
+                Extensions.ConfigFlags.ServerSided);
         }
         
         private static void BindGoldenKnurl(ConfigFile cfg, string section)
         {
 
-            GoldenKnurl.EnableKnurl = cfg.BindOption(section, "Enable Golden Knurl", "Should Golden Knurl be enabled?", true, Extensions.ConfigFlags.RestartRequired);
-            GoldenKnurl.KnurlHealth = cfg.BindOptionSlider(section, "Golden Knurl Health", "Adjust how much max health Golden Knurl grants, as a decimal.", 0.1f, 0f, 1f);
-            GoldenKnurl.KnurlRegen = cfg.BindOptionSlider(section, "Golden Knurl Regen", "Adjust how much regen Golden Knurl grants.", 2.4f, 0f, 10f);
-            GoldenKnurl.KnurlArmor = cfg.BindOptionSlider(section, "Golden Knurl Armor", "Adjust how much armor Golden Knurl grants.", 20f, 0f, 100f);
+            GoldenKnurl.EnableKnurl = cfg.BindOption(section, 
+                "Enable Golden Knurl",
+                "Should Golden Knurl be enabled?", 
+                true,
+                Extensions.ConfigFlags.RestartRequired);
+
+            GoldenKnurl.KnurlHealth = cfg.BindOptionSlider(section, 
+                "Golden Knurl Health", 
+                "Adjust how much max health Golden Knurl grants, as a decimal.",
+                0.1f, 0f,
+                1f);
+
+            GoldenKnurl.KnurlRegen = cfg.BindOptionSlider(section,
+                "Golden Knurl Regen", 
+                "Adjust how much regen Golden Knurl grants.", 
+                2.4f, 0f, 
+                10f);
+
+            GoldenKnurl.KnurlArmor = cfg.BindOptionSlider(section,
+                "Golden Knurl Armor", 
+                "Adjust how much armor Golden Knurl grants.",
+                20f, 0f,
+                100f);
 
         }
         
         private static void BindGuardiansEye(ConfigFile cfg, string section)
         {
-            LaserEye.EnableEye = cfg.BindOption(section, "Enable Guardians Eye", "Should Guardian's Eye be enabled?", true, Extensions.ConfigFlags.RestartRequired);
-            LaserEye.EyeDamage = cfg.BindOptionSlider(section, "Guardians Eye Damage", "Adjust how much damage Guardian's Eye does, as a decimal.", 2.5f, 0f, 10f, Extensions.ConfigFlags.ServerSided);
-            LaserEye.EyeDamage = cfg.BindOptionSlider(section, "Guardians Eye Blast Proc Coeff", "Adjust the proc coefficient of Guardian's Eye blast, as a decimal.", 1f, 0f, 5f, Extensions.ConfigFlags.ServerSided);
-            LaserEye.EyeStacksRequired = cfg.BindOptionSlider(section, "Guardians Eye Stacks Required", "Adjust how many stacks are required for Guardian's Eye to trigger.", 10, 1, 20, Extensions.ConfigFlags.ServerSided);
+            LaserEye.EnableEye = cfg.BindOption(section, 
+                "Enable Guardians Eye",
+                "Should Guardian's Eye be enabled?",
+                true,
+                Extensions.ConfigFlags.RestartRequired);
+
+            LaserEye.EyeDamage = cfg.BindOptionSlider(section,
+                "Guardians Eye Damage",
+                "Adjust how much damage Guardian's Eye does, as a decimal.",
+                2.5f, 
+                0f, 10f,
+                Extensions.ConfigFlags.ServerSided);
+
+            LaserEye.EyeBlastProcCoeff = cfg.BindOptionSlider(section, 
+                "Guardians Eye Blast Proc Coeff",
+                "Adjust the proc coefficient of Guardian's Eye blast, as a decimal.",
+                1f,
+                0f, 5f,
+                Extensions.ConfigFlags.ServerSided);
+
+            LaserEye.EyeStacksRequired = cfg.BindOptionSlider(section,
+                "Guardians Eye Stacks Required",
+                "Adjust how many stacks are required for Guardian's Eye to trigger.",
+                10, 
+                1, 20,
+                Extensions.ConfigFlags.ServerSided);
+
+            LaserEye.EyeStackTimer = cfg.BindOptionSlider(section,
+                "Time until Guardians Eye Stacks disappear",
+                "Adjust how long since last earning gold before all stacks are removed.",
+                10f,
+                1f, 60f,
+                Extensions.ConfigFlags.ServerSided);
         }
     }
 }

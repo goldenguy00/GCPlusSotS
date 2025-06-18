@@ -1,7 +1,8 @@
 `1.2.2`
 
 - Fixed Boss attacks being out of order
-- Fixed Laser Eye
+- Tweaked Laser Eye to scale with 2 (+2 per stack) enemies hit instead of 2500% (+2500% per stack) damage
+- Fixed things just straight up ignoring configs???? 
 
 `1.2.1`
 

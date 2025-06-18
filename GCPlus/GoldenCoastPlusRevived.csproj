@@ -7,11 +7,11 @@
   </PropertyGroup>
     
   <ItemGroup>
-    <EmbeddedResource Include="Assets\Aurelionite_s_Blessing.png" />
-    <EmbeddedResource Include="Assets\Golden_Knurl.png" />
-    <EmbeddedResource Include="Assets\Gold_Elite_Icon.png" />
-    <EmbeddedResource Include="Assets\Guardian_s_Eye.png" />
-    <EmbeddedResource Include="Assets\Titanic_Greatsword.png" />
+    <EmbeddedResource Include="Properties\Assets\Aurelionite_s_Blessing.png" />
+    <EmbeddedResource Include="Properties\Assets\Golden_Knurl.png" />
+    <EmbeddedResource Include="Properties\Assets\Gold_Elite_Icon.png" />
+    <EmbeddedResource Include="Properties\Assets\Guardian_s_Eye.png" />
+    <EmbeddedResource Include="Properties\Assets\Titanic_Greatsword.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,6 +37,21 @@
     <Reference Include="MiscFixes">
       <HintPath>..\..\..\_CORE\MysticFixes\Release\MiscFixes.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
