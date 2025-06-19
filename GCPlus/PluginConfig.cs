@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using BepInEx.Configuration;
+using GoldenCoastPlusRevived.Buffs;
 using GoldenCoastPlusRevived.Items;
+using GoldenCoastPlusRevived.Modules;
 using HarmonyLib;
 using MiscFixes.Modules;
 
@@ -15,10 +17,6 @@ namespace GoldenCoastPlusRevived
         private static bool _versionChanged;
         public static ConfigEntry<bool> AutoConfig { get; set; }
         public static ConfigEntry<string> LatestVersion { get; set; }
-        public static ConfigEntry<bool> FightChanges { get; set; }
-        public static ConfigEntry<int> BossVulnerabilityTime { get; set; }
-        public static ConfigEntry<float> BossArmorBrokenMult { get; set; }
-        public static ConfigEntry<float> AurelioniteBlessingGoldGain { get; set; }
 
         internal static void Init(ConfigFile cfg)
         {
@@ -32,7 +30,7 @@ namespace GoldenCoastPlusRevived
 
         private static void BindConfig(ConfigFile cfg, string section)
         {
-            AutoConfig = cfg.BindOption(section,
+            PluginConfig.AutoConfig = cfg.BindOption(section,
                 "Enable Auto Config Sync",
                 "Disabling this would stop GCP from syncing config whenever a new version is found.",
                 true,
@@ -40,7 +38,7 @@ namespace GoldenCoastPlusRevived
 
             bool _preVersioning = !((Dictionary<ConfigDefinition, string>)AccessTools.DeclaredPropertyGetter(typeof(ConfigFile), "OrphanedEntries").Invoke(cfg, null)).Keys.Any(x => x.Key == "Latest Version");
 
-            LatestVersion = cfg.BindOption(section,
+            PluginConfig.LatestVersion = cfg.BindOption(section,
                 "Latest Version", 
                 "DO NOT CHANGE THIS",
                 GoldenCoastPlusPlugin.MOD_VERSON);
@@ -53,6 +51,149 @@ namespace GoldenCoastPlusRevived
             }
         }
 
+        private static void BindFightChanges(ConfigFile cfg, string section)
+        {
+            FightChanges.EnableFightChanges = cfg.BindOption(section,
+                "Enable Fight Changes",
+                "Should the changes to Aurelionite's fight be enabled?",
+                true, 
+                Extensions.ConfigFlags.RestartRequired);
+
+            FightChanges.BossVulnerabilityTime = cfg.BindOptionSlider(section,
+                "Vulnerability Time",
+                "Time in seconds that Aurelionite becomes vulnerable per phase",
+                20,
+                0, 100,
+                Extensions.ConfigFlags.ServerSided);
+
+            FightChanges.BossHealthMult = cfg.BindOptionSlider(section,
+                "Boss Aurelionites health per level multiplier",
+                "Adjust the multiplier on the bosses health per level.",
+                1.25f,
+                0.1f, 5f,
+                Extensions.ConfigFlags.RestartRequired);
+
+            FightChanges.UseAdaptiveArmor = cfg.BindOption(section,
+                "Boss Adaptive Armor",
+                "Should the boss Aurelionite have adaptive armor?",
+                true,
+                Extensions.ConfigFlags.RestartRequired);
+
+            TitanGoldArmorBroken.BossArmorBrokenMult = cfg.BindOptionSlider(section,
+                "Damage taken multiplier debuff",
+                "Adjust the boss's damage taken multiplier as decimal.",
+                1.25f,
+                0.1f, 3f,
+                Extensions.ConfigFlags.ServerSided);
+
+            HiddenGoldItem.AurelioniteBlessingGoldGain = cfg.BindOptionSlider(section,
+                "Aurelionites Blessing gold gain multiplier",
+                "Adjust the percent additional gold gain.",
+                25f,
+                0f, 100f,
+                Extensions.ConfigFlags.ServerSided);
+        }
+
+        private static void BindTitanicGreatsword(ConfigFile cfg, string section)
+        {
+            BigSword.EnableSword = cfg.BindOption(section, 
+                "Enable Titanic Greatsword", 
+                "Should Titanic Greatsword be enabled?", 
+                true, 
+                Extensions.ConfigFlags.RestartRequired);
+
+            BigSword.SwordDamage = cfg.BindOptionSlider(section, 
+                "Titanic Greatsword Damage", 
+                "Adjust the TOTAL damage coefficient of Titanic Greatsword",
+                8f, 
+                1f, 25f,
+                Extensions.ConfigFlags.ServerSided);
+
+            BigSword.SwordChance = cfg.BindOptionSlider(section, 
+                "Titanic Greatsword Chance", 
+                "Adjust Titanic Greatsword's chance to proc, as a percentage.",
+                5f,
+                1f, 100f, 
+                Extensions.ConfigFlags.ServerSided);
+
+            BigSword.SwordProcCoeff = cfg.BindOptionSlider(section, 
+                "Titanic Greatsword Proc Coeff", 
+                "Adjust Titanic Greatsword's proc coefficient.", 
+                1f,
+                0f, 3f, 
+                Extensions.ConfigFlags.ServerSided);
+        }
+        
+        private static void BindGoldenKnurl(ConfigFile cfg, string section)
+        {
+            GoldenKnurl.EnableKnurl = cfg.BindOption(section, 
+                "Enable Golden Knurl",
+                "Should Golden Knurl be enabled?", 
+                true,
+                Extensions.ConfigFlags.RestartRequired);
+
+            GoldenKnurl.KnurlLevelHealth = cfg.BindOptionSlider(section, 
+                "Golden Knurl Health", 
+                "Adjust how much health per level Golden Knurl grants.",
+                33f,
+                0f, 100f);
+
+            GoldenKnurl.KnurlLevelRegen = cfg.BindOptionSlider(section,
+                "Golden Knurl Regen", 
+                "Adjust how much regen per level Golden Knurl grants.", 
+                3f, 
+                0f, 10f);
+
+            GoldenKnurl.KnurlLevelArmor = cfg.BindOptionSlider(section,
+                "Golden Knurl Armor", 
+                "Adjust how much armor per level Golden Knurl grants.",
+                3f,
+                0f, 10f);
+        }
+        
+        private static void BindGuardiansEye(ConfigFile cfg, string section)
+        {
+            LaserEye.EnableEye = cfg.BindOption(section, 
+                "Enable Guardians Eye",
+                "Should Guardian's Eye be enabled?",
+                true,
+                Extensions.ConfigFlags.RestartRequired);
+
+            LaserEye.EyeDamage = cfg.BindOptionSlider(section,
+                "Guardians Eye Damage",
+                "Adjust the BASE damage coefficient of Guardian's Eye blast, per target.",
+                6f,
+                1f, 20f,
+                Extensions.ConfigFlags.ServerSided);
+
+            LaserEye.EyeTargetsPerStack = cfg.BindOptionSlider(section,
+                "Guardians Eye Max Targets",
+                "Adjust the max targets per stack the Guardian's Eye will hit.",
+                2,
+                1, 10,
+                Extensions.ConfigFlags.ServerSided);
+
+            LaserEye.EyeBlastProcCoeff = cfg.BindOptionSlider(section,
+                "Guardians Eye Blast Proc Coeff",
+                "Adjust the proc coefficient of Guardian's Eye blast.",
+                1f,
+                0f, 3f,
+                Extensions.ConfigFlags.ServerSided);
+
+            LaserEye.EyeMaxRange = cfg.BindOptionSlider(section,
+                "Guardians Eye Range",
+                "Adjust the targeting range of Guardian's Eye.",
+                30f,
+                1f, 100f,
+                Extensions.ConfigFlags.ServerSided);
+
+            LaserEye.EyeStacksMultiplier = cfg.BindOptionSlider(section,
+                "Guardians Eye Stacks Required",
+                "Adjust how much gold income is required for Guardian's Eye to trigger, as a multiple of the cost of a small chest.",
+                1f, 
+                0.1f, 5f,
+                Extensions.ConfigFlags.ServerSided);
+        }
         private static void ValidateConfig(ConfigFile cfg)
         {
             _backupConfig = new ConfigFile(System.IO.Path.Combine(BepInEx.Paths.ConfigPath, $"{GoldenCoastPlusPlugin.MOD_GUID}.Backup.cfg"), true);
@@ -76,6 +217,7 @@ namespace GoldenCoastPlusRevived
             }
 
             cfg.WipeConfig();
+            _backupConfig.WipeConfig();
         }
 
         private static ConfigEntryBase BindBackup(ConfigFile cfg, ConfigEntryBase entry)
@@ -137,124 +279,6 @@ namespace GoldenCoastPlusRevived
                 return UnityEngine.Mathf.Abs(fa - fb) < 0.0001;
 
             return false;
-        }
-
-        private static void BindFightChanges(ConfigFile cfg, string section)
-        {
-            FightChanges = cfg.BindOption(section,
-                "Enable Fight Changes",
-                "Should the changes to Aurelionite's fight be enabled?",
-                true, 
-                Extensions.ConfigFlags.RestartRequired);
-
-            BossVulnerabilityTime = cfg.BindOptionSlider(section,
-                "Vulnerability Time",
-                "Time in seconds that Aurelionite becomes vulnerable per phase",
-                20,
-                0, 100,
-                Extensions.ConfigFlags.ServerSided);
-
-            BossArmorBrokenMult = cfg.BindOptionSlider(section,
-                "Damage taken multiplier debuff",
-                "Adjust the boss's damage taken multiplier as decimal.",
-                1.5f,
-                0f, 5f,
-                Extensions.ConfigFlags.ServerSided);
-
-            AurelioniteBlessingGoldGain = cfg.BindOptionSlider(section,
-                "Aurelionites Blessing buff additional gold gain multiplier",
-                "Adjust the buffs gold gain multiplier (0.25 = 25%)",
-                0.25f,
-                0f, 1f,
-                Extensions.ConfigFlags.ServerSided);
-        }
-
-        private static void BindTitanicGreatsword(ConfigFile cfg, string section)
-        {
-            BigSword.EnableSword = cfg.BindOption(section, 
-                "Enable Titanic Greatsword", 
-                "Should Titanic Greatsword be enabled?", 
-                true, 
-                Extensions.ConfigFlags.RestartRequired);
-
-            BigSword.SwordDamage = cfg.BindOptionSlider(section, 
-                "Titanic Greatsword Damage", 
-                "Adjust Titanic Greatsword's damage coefficient, as a decimal.",
-                12.5f, 
-                1f, 25f,
-                Extensions.ConfigFlags.ServerSided);
-
-            BigSword.SwordChance = cfg.BindOptionSlider(section, 
-                "Titanic Greatsword Chance", 
-                "Adjust Titanic Greatsword's chance to proc, as a percentage.",
-                5f, 
-                0f, 100f, 
-                Extensions.ConfigFlags.ServerSided);
-
-            BigSword.SwordProcCoeff = cfg.BindOptionSlider(section, 
-                "Titanic Greatsword Proc Coeff", 
-                "Adjust Titanic Greatsword's proc coeff.", 
-                1f,
-                0f, 5f, 
-                Extensions.ConfigFlags.ServerSided);
-        }
-        
-        private static void BindGoldenKnurl(ConfigFile cfg, string section)
-        {
-            GoldenKnurl.EnableKnurl = cfg.BindOption(section, 
-                "Enable Golden Knurl",
-                "Should Golden Knurl be enabled?", 
-                true,
-                Extensions.ConfigFlags.RestartRequired);
-
-            GoldenKnurl.KnurlHealth = cfg.BindOptionSlider(section, 
-                "Golden Knurl Health", 
-                "Adjust how much max health Golden Knurl grants, as a decimal.",
-                0.1f, 0f,
-                1f);
-
-            GoldenKnurl.KnurlRegen = cfg.BindOptionSlider(section,
-                "Golden Knurl Regen", 
-                "Adjust how much regen Golden Knurl grants.", 
-                2.4f, 0f, 
-                10f);
-
-            GoldenKnurl.KnurlArmor = cfg.BindOptionSlider(section,
-                "Golden Knurl Armor", 
-                "Adjust how much armor Golden Knurl grants.",
-                20f, 0f,
-                100f);
-
-        }
-        
-        private static void BindGuardiansEye(ConfigFile cfg, string section)
-        {
-            LaserEye.EnableEye = cfg.BindOption(section, 
-                "Enable Guardians Eye",
-                "Should Guardian's Eye be enabled?",
-                true,
-                Extensions.ConfigFlags.RestartRequired);
-
-            LaserEye.EyeDamage = cfg.BindOptionSlider(section,
-                "Guardians Eye Damage",
-                "Adjust how much % base damage Guardian's Eye does per target, where 1 == 100% base damage.",
-                6f, 
-                0f, 25f,
-                Extensions.ConfigFlags.ServerSided);
-
-            LaserEye.EyeBlastProcCoeff = cfg.BindOptionSlider(section, 
-                "Guardians Eye Blast Proc Coeff",
-                "Adjust the proc coefficient of Guardian's Eye blast, as a decimal.",
-                1f,
-                0f, 5f,
-                Extensions.ConfigFlags.ServerSided);
-
-            LaserEye.EyeStacksRequired = cfg.BindOptionSlider(section,
-                "Guardians Eye Stacks Required",
-                "Adjust how many stacks are required for Guardian's Eye to trigger.",
-                5, 
-                1, 20,
-                Extensions.ConfigFlags.ServerSided);
         }
     }
 }

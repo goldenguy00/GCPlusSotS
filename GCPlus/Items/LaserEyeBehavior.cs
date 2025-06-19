@@ -1,13 +1,23 @@
-﻿using GoldenCoastPlusRevived.Buffs;
+﻿using System;
+using System.Linq;
+using GoldenCoastPlusRevived.Buffs;
 using GoldenCoastPlusRevived.Modules;
 using RoR2;
+using RoR2BepInExPack.GameAssetPaths;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.Android;
 
 namespace GoldenCoastPlusRevived.Items
 {
 	public class LaserEyeBehavior : CharacterBody.ItemBehavior
     {
         private float timer;
+        private float goldTarget = 25;
+        private float goldCollected;
+
+        public int MaxTargets => base.stack * LaserEye.EyeTargetsPerStack.Value;
+
 
         public void Awake()
         {
@@ -16,16 +26,23 @@ namespace GoldenCoastPlusRevived.Items
 
         private void OnEnable()
         {
-            if (this.body && this.body.master)
-                this.body.master.OnGoldCollected += Master_OnGoldCollected;
+            goldTarget = (int)CharacterMaster.costOfSmallChest * LaserEye.EyeStacksMultiplier.Value;
+            if (goldTarget < 0)
+                goldTarget = int.MaxValue;
+
+            if (this.body)
+            {
+                if (this.body.master)
+                    this.body.master.OnGoldCollected += Master_OnGoldCollected;
+            }
         }
 
         private void OnDisable()
         {
             if (this.body)
             {
-                if (0 < this.body.GetBuffCount(LaserEyeCharge.BuffIndex))
-                    this.body.ClearTimedBuffs(LaserEyeCharge.BuffIndex);
+                this.body.SetBuffCount(LaserEyeCharge.BuffIndex, 0);
+                this.body.SetBuffCount(LaserEyeReady.BuffIndex, 0);
 
                 if (this.body.master)
                     this.body.master.OnGoldCollected -= Master_OnGoldCollected;
@@ -34,42 +51,56 @@ namespace GoldenCoastPlusRevived.Items
 
         private void FixedUpdate()
 		{
-            if (!this.body || this.body.GetBuffCount(LaserEyeCharge.BuffIndex) < LaserEye.EyeStacksRequired.Value)
+            if (!this.body)
                 return;
 
             this.timer -= Time.fixedDeltaTime;
             if (this.timer <= 0f)
             {
-                this.timer = 0.25f;
-                this.FireLaser();
+                this.timer = 0.2f;
+
+                if (this.body.HasBuff(LaserEyeReady.BuffIndex))
+                    this.FireLaser();
+
+                UpdateBuffCount();
             }
         }
-
-        private void RefreshTimedBuffs(CharacterBody body, BuffIndex buffIndex, float duration)
+        private void UpdateBuffCount()
         {
-            for (int l = 0; l < body.timedBuffs.Count; l++)
+            var currentCooldown = this.body.GetBuffCount(LaserEyeCharge.BuffIndex);
+            var targetCooldown = (int)Util.Remap(goldCollected, 0f, goldTarget, 25f, 0f);
+
+            if (currentCooldown < targetCooldown)
             {
-                var timedBuff = body.timedBuffs[l];
-                if (timedBuff.buffIndex == buffIndex)
+                this.body.SetBuffCount(LaserEyeCharge.BuffIndex, targetCooldown);
+            }
+            else if (currentCooldown > targetCooldown)
+            {
+                this.body.RemoveBuff(LaserEyeCharge.BuffIndex);
+            }
+
+            if (this.body.GetBuffCount(LaserEyeCharge.BuffIndex) == 0)
+            {
+                if (!this.body.HasBuff(LaserEyeReady.BuffIndex))
                 {
-                    if (timedBuff.timer < duration)
+                    this.body.AddBuff(LaserEyeReady.BuffIndex);
+                    EffectManager.SpawnEffect(GCPAssets.LaserEyeReady, new EffectData
                     {
-                        timedBuff.timer = duration;
-                        timedBuff.totalDuration = duration;
-                    }
+                        origin = body.coreTransform.position
+                    }, transmit: true);
+
+                    Util.PlaySound("Play_bandit_M1_pump", this.gameObject);
                 }
             }
-            this.body.AddTimedBuff(buffIndex, duration);
+            else if (this.body.HasBuff(LaserEyeReady.BuffIndex))
+                this.body.RemoveBuff(LaserEyeReady.BuffIndex);
         }
 
-        private void Master_OnGoldCollected(float _)
+        private void Master_OnGoldCollected(float scaledAmount)
         {
-            if (!this.body)
-                return;
-
-            if (this.body.GetBuffCount(LaserEyeCharge.BuffIndex) < LaserEye.EyeStacksRequired.Value)
+            if (goldCollected < goldTarget)
             {
-                this.RefreshTimedBuffs(this.body, LaserEyeCharge.BuffIndex, LaserEye.EyeStackTimer.Value);
+                goldCollected += scaledAmount;
             }
         }
 
@@ -82,17 +113,27 @@ namespace GoldenCoastPlusRevived.Items
                 filterByLoS = true,
                 sortMode = BullseyeSearch.SortMode.Distance,
                 queryTriggerInteraction = QueryTriggerInteraction.UseGlobal,
-                maxDistanceFilter = 100f,
+                maxDistanceFilter = 30f,
                 viewer = this.body,
                 searchOrigin = this.body.corePosition
             };
             bs.teamMaskFilter.RemoveTeam(this.body.teamComponent.teamIndex);
             bs.RefreshCandidates();
+            var results = bs.GetResults();
+
+            if (!results.Any())
+                return;
+
+            int childIndex = -1;
+
+            var model = this.body.modelLocator ? this.body.modelLocator.modelTransform : null;
+            if (model && model.TryGetComponent<ChildLocator>(out var childLoc)) 
+                childIndex = childLoc.FindChildIndex("Head");
 
             int enemiesSmited = 0;
-            foreach (var enemy in bs.GetResults())
+            foreach (var enemy in results)
             {
-                if (enemiesSmited > base.stack * 2)
+                if (enemiesSmited > MaxTargets)
                     break;
 
                 enemiesSmited++;
@@ -108,25 +149,21 @@ namespace GoldenCoastPlusRevived.Items
                     falloffModel = BlastAttack.FalloffModel.None
                 }.Fire();
 
-                EffectData effectData = new EffectData
+                var effectData = new EffectData
                 {
                     origin = enemy.transform.position,
-                    start = base.body.corePosition
+                    start = this.body.aimOrigin
                 };
-                Transform modelTransform = base.body.modelLocator?.modelTransform;
-                if (modelTransform)
-                {
-                    ChildLocator component = modelTransform.GetComponent<ChildLocator>();
-                    if (component)
-                        effectData.SetChildLocatorTransformReference(base.body.gameObject, component.FindChildIndex("Chest"));
-                }
-                EffectManager.SpawnEffect(GCPAssets.tracerGolem, effectData, true);
-                EffectManager.SpawnEffect(GCPAssets.tracerGolem2, effectData, true);
+                effectData.SetChildLocatorTransformReference(base.gameObject, childIndex);
+
+                EffectManager.SpawnEffect(GCPAssets.LaserEyeBeam, effectData, transmit: true);
+                EffectManager.SpawnEffect(GCPAssets.LaserEyeExplosion, effectData, transmit: true);
             }
+
             if (enemiesSmited > 0)
             {
                 Util.PlaySound(EntityStates.GolemMonster.FireLaser.attackSoundString, this.gameObject);
-                this.body.ClearTimedBuffs(LaserEyeCharge.BuffIndex);
+                goldCollected = 0f;
             }
 		}
 	}

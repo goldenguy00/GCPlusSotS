@@ -1,7 +1,7 @@
 {
     "name": "GoldenCoastPlus",
     "author": "TechDebtCollector",
-    "version_number": "1.2.2",
+    "version_number": "1.3.0",
     "website_url": "https://github.com/goldenguy00/GCPlusSotS",
     "description": "Adds some things to Golden Coast in the hopes of making it a more interesting and fun environment to visit. Highly configurable.",
     "dependencies": [

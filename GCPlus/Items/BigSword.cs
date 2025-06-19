@@ -18,7 +18,7 @@ namespace GoldenCoastPlusRevived.Items
         internal override string token => "BigSword";
         internal override string pickup => "Chance on hit to summon the sword of a long-imprisoned guardian.";
         internal override string description => "<style=cIsDamage>5%</style> chance on hit to summon <style=cIsDamage>Aurelionite's sword</style> to strike an enemy from underneath " +
-            "for <style=cIsDamage>1250%</style> <style=cStack>(+1250% per stack)</style> TOTAL damage.";
+            $"for <style=cIsDamage>{SwordDamage.Value}%</style> <style=cStack>(+{SwordDamage.Value}% per stack)</style> TOTAL damage.";
         internal override string lore => "The sword. The mark of a champion, fighting to protect. Perhaps, some day, the only thing between it and annihilation. " +
             "A tool to defend.\n\nBut, also, the tool of a conqueror. One that is designed with the sole purpose to draw blood. Nothing more. In which way it is used is up to the wielder.";
 
@@ -96,7 +96,7 @@ namespace GoldenCoastPlusRevived.Items
             var itemCount = attackerBody.inventory?.GetItemCount(BigSword.ItemIndex) ?? 0;
             if (itemCount > 0 && !damageInfo.procChainMask.HasModdedProc(swordProcType) && Util.CheckRoll(SwordChance.Value * damageInfo.procCoefficient, attackerBody.master))
             {
-                var damage = Util.OnHitProcDamage(damageInfo.damage, attackerBody.damage, SwordDamage.Value * (float)itemCount);
+                var damage = Util.OnHitProcDamage(damageInfo.damage, attackerBody.damage, SwordDamage.Value * itemCount);
                 var mask = damageInfo.procChainMask;
                 mask.AddModdedProc(swordProcType);
 

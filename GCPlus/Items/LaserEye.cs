@@ -17,8 +17,9 @@ namespace GoldenCoastPlusRevived.Items
         internal override string name => "Guardian's Eye";
         internal override string token => "LaserEye";
         internal override string pickup => "Collecting gold will charge up a powerful laser.";
-        internal override string description => "<style=cShrine>Collecting gold</style> will charge up a <style=cDeath>powerful laser</style> and grant a <style=cIsUtility>stacking buff</style>. " +
-            "At ten stacks of this buff, the <style=cDeath>laser</style> will fire at <style=cIsUtility>2</style> <style=cStack>(+2 per stack)</style> enemies within 100 meters, dealing <style=cIsDamage>2500%</style> BASE damage.";
+        internal override string description => "<style=cShrine>Collecting gold</style> will charge up a <style=cDeath>powerful laser</style>. When armed, " +
+            $"the <style=cDeath>laser</style> will fire at <style=cIsUtility>{EyeTargetsPerStack.Value}</style> <style=cStack>(+{EyeTargetsPerStack.Value} per stack)</style> " +
+            $"enemies within {EyeMaxRange.Value} meters, dealing <style=cIsDamage>{EyeDamage.Value}%</style> BASE damage.";
         internal override string lore => "The ability to see. Designs such as this have no need to taste. They do not feel, nor smell, nor hear that which surrounds them. " +
             "They have no need.\n\n...\n\nA sad existence. Forced to follow orders. Nothing more than a servant. No feelings.\n\nPerhaps one exception. " +
             "One day, this guardian will have no one to take orders from. Will have new challenges to overcome, and new decisions to make. A proper protector for this planet.";
@@ -32,12 +33,39 @@ namespace GoldenCoastPlusRevived.Items
 
         public static ConfigEntry<bool> EnableEye { get; set; }
         public static ConfigEntry<float> EyeDamage { get; set; }
-        public static ConfigEntry<int> EyeStacksRequired { get; set; }
+        public static ConfigEntry<int> EyeTargetsPerStack { get; set; }
         public static ConfigEntry<float> EyeBlastProcCoeff { get; set; }
-        public static ConfigEntry<float> EyeStackTimer { get; set; }
+        public static ConfigEntry<float> EyeMaxRange { get; set; }
+        public static ConfigEntry<float> EyeStacksMultiplier { get; set; }
 
         internal override void AddItem()
         {
+            GCPAssets.LaserEyeBeam = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Golem.TracerGolem_prefab).WaitForCompletion().InstantiateClone("GCPLaserEyeBeam", true);
+            GCPAssets.LaserEyeExplosion = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Golem.ExplosionGolem_prefab).WaitForCompletion().InstantiateClone("GCPLaserEyeExplosion", true);
+            GCPAssets.LaserEyeReady = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Common_VFX.ShieldBreakEffect_prefab).WaitForCompletion().InstantiateClone("GCPLaserEyeReady", true);
+            var system = GCPAssets.LaserEyeReady.transform.GetChild(0).GetComponent<ParticleSystem>();
+            var main = system.main;
+            var color = main.startColor;
+            color.colorMin = Color.yellow;
+            main.startColor = color;
+
+            system = GCPAssets.LaserEyeReady.transform.GetChild(1).GetComponent<ParticleSystem>();
+            main = system.main;
+
+            color = main.startColor;
+            color.colorMin = Color.yellow;
+            color.colorMax = Color.red;
+            main.startColor = color;
+
+            var size = main.startSize;
+            size.constantMin = 1f;
+            size.constantMax = 2f;
+            main.startSize = size;
+
+            ContentAddition.AddEffect(GCPAssets.LaserEyeBeam);
+            ContentAddition.AddEffect(GCPAssets.LaserEyeExplosion);
+            ContentAddition.AddEffect(GCPAssets.LaserEyeReady);
+
             GCPAssets.LaserEyePrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Meteor.PickupMeteor_prefab).WaitForCompletion().InstantiateClone("GCPPickupLaserEye", false);
             GCPAssets.LaserEyePrefab.GetComponentInChildren<Renderer>().materials =
             [   

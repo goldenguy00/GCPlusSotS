@@ -1,10 +1,29 @@
-`1.2.2`
+`1.3.0`
 
-- Fixed Boss attacks being out of order
 - Fixed things just straight up ignoring configs???? 
 - Added AutoConfigs and config syncing
-- Laser Eye now scales with 2 (+2 per stack) enemies hit instead of 2500% (+2500% per stack) damage
+- Fixed item descriptions being incorrect
+
+- Fixed Boss attacks being out of order
+- Added adaptive armor to boss
+- Shortened laser duration
+- Gold Affix is now given on p3
+- Fixed phases being inconsistent when the time elapsed
+- Added brief invuln time on spawn
+- Re-added broken armor window
+
+- Titanic Sword mostly unchanged
+- 5% for 1250% TOTAL damage
+- Many bugfixes
+
+- Golden Knurl now grants 33 hp/lvl, 3 regen/level, 3 armor/level
+- Should make it a bit different from the normal Knurl
+- Still on the chopping block for a full rework, this will do for now.
+
+- Laser Eye now scales with 2 (+2 per stack) enemies hit for 600% base dmg each
 - Laser Eye stacks no longer are timed
+- Laser Eye stacks start at 25, and is reduced by earning gold. 
+- Each time you can afford a small chest, the stacks will hit 0 and the eye will be armed.
 
 `1.2.1`
 

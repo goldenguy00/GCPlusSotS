@@ -14,6 +14,7 @@ namespace GoldenCoastPlusRevived.Buffs
         internal override Color color => Color.red;
         internal override bool canStack => true;
         internal override bool isDebuff => false;
+        internal override bool isCooldown => true;
         internal override EliteDef eliteDef => null;
     }
 }

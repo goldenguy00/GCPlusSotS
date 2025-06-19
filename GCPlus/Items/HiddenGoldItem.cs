@@ -1,4 +1,5 @@
-﻿using GoldenCoastPlusRevived.Buffs;
+﻿using BepInEx.Configuration;
+using GoldenCoastPlusRevived.Buffs;
 using GoldenCoastPlusRevived.Modules;
 using RoR2;
 using UnityEngine;
@@ -8,18 +9,19 @@ namespace GoldenCoastPlusRevived.Items
 {
     internal class HiddenGoldItem : ItemBase<HiddenGoldItem>
 	{
-        public HiddenGoldItem() : base(PluginConfig.FightChanges.Value) { }
+        public HiddenGoldItem() : base(FightChanges.EnableFightChanges.Value) { }
 
         internal override string name => "Aurelionite's Blessing";
         internal override string token => "HiddenGoldBuffItem";
         internal override string pickup => "The Guardian of the Golden Coast has blessed you.";
-        internal override string description => "Gain <style=cShrine>10%</style> <style=cStack>(+10% per stack)</style> <style=cShrine>more gold</style>.";
+        internal override string description => $"Gain <style=cShrine>{AurelioniteBlessingGoldGain.Value}%</style> <style=cStack>(+{AurelioniteBlessingGoldGain.Value}% per stack)</style> <style=cShrine>more gold</style>.";
         internal override string lore => "";
         internal override GameObject modelPrefab => null;
         internal override Sprite iconSprite => GCPAssets.HiddenGoldBuffIcon;
         internal override ItemTier Tier => ItemTier.NoTier;
         internal override ItemTag[] ItemTags => new ItemTag[] { ItemTag.BrotherBlacklist, ItemTag.CannotDuplicate, ItemTag.WorldUnique };
         internal override bool hidden => true;
+        public static ConfigEntry<float> AurelioniteBlessingGoldGain { get; set; }
 
 
         internal override void AddHooks()
@@ -43,7 +45,7 @@ namespace GoldenCoastPlusRevived.Items
                 var itemCount = self.inventory?.GetItemCount(HiddenGoldItem.ItemIndex) ?? 0;
                 if (itemCount > 0)
                 {
-                    var addedPercent = itemCount * PluginConfig.AurelioniteBlessingGoldGain.Value;
+                    var addedPercent = itemCount * AurelioniteBlessingGoldGain.Value;
                     amount += (uint)Mathf.CeilToInt(amount * addedPercent);
                 }
             }

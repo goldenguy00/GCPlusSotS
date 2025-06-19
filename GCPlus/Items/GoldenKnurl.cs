@@ -15,9 +15,9 @@ namespace GoldenCoastPlusRevived.Items
         internal override string name => "Golden Knurl";
         internal override string token => "GoldenKnurl";
         internal override string pickup => "Boosts health, regeneration, and armor.";
-        internal override string description => "<style=cIsHealing>Increase maximum health</style> by <style=cIsHealing>+10%</style> <style=cStack>(+10% per stack)</style>, " +
-            "<style=cIsHealing>base health regen</style> by <style=cIsHealing>+2.4 hp/s</style> <style=cStack>(+2.4 hp/s per stack)</style>, and <style=cIsUtility>armor</style> " +
-            "by <style=cIsUtility>+20</style> <style=cStack>(+20 per stack)</style>.";
+        internal override string description => $"<style=cIsHealing>Increase maximum health per level</style> by <style=cIsHealing>+{KnurlLevelHealth.Value}%</style> <style=cStack>(+{KnurlLevelHealth.Value}% per stack)</style>, " +
+            $"<style=cIsHealing>health regen per level</style> by <style=cIsHealing>+{KnurlLevelRegen.Value} hp/s</style> <style=cStack>(+{KnurlLevelRegen.Value} hp/s per stack)</style>," +
+            $" and <style=cIsUtility>armor per level</style> by <style=cIsUtility>+{KnurlLevelArmor.Value}</style> <style=cStack>(+{KnurlLevelArmor.Value} per stack)</style>.";
         internal override string lore => "A well-tested design. One that's proven powerful, yet gentle. That which can coexist with this planet's creatures, but defend them when need be." +
             "\n\nA construction of gold. Something unique. Something distinct. Something iconic. One to stand out, and be remembered both by friend and foe.\n\nA guardian." +
             " A creature who can defend this Heaven. One day, we will no longer be here for these creatures. But this one will. One to ensure their survival, when we can not.";
@@ -30,9 +30,9 @@ namespace GoldenCoastPlusRevived.Items
         internal override bool hidden => false;
 
         public static ConfigEntry<bool> EnableKnurl { get; set; }
-        public static ConfigEntry<float> KnurlHealth { get; set; }
-        public static ConfigEntry<float> KnurlRegen { get; set; }
-        public static ConfigEntry<float> KnurlArmor { get; set; }
+        public static ConfigEntry<float> KnurlLevelHealth { get; set; }
+        public static ConfigEntry<float> KnurlLevelRegen { get; set; }
+        public static ConfigEntry<float> KnurlLevelArmor { get; set; }
 
         internal override void AddItem()
         {
@@ -82,9 +82,9 @@ namespace GoldenCoastPlusRevived.Items
             var itemCount = sender.inventory?.GetItemCount(GoldenKnurl.ItemIndex) ?? 0;
             if (itemCount > 0)
             {
-                args.armorAdd += KnurlArmor.Value * (float)itemCount;
-                args.baseRegenAdd += KnurlRegen.Value * (float)itemCount;
-                args.healthMultAdd += KnurlHealth.Value * (float)itemCount;
+                args.levelArmorAdd += KnurlLevelArmor.Value * itemCount;
+                args.levelRegenAdd += KnurlLevelRegen.Value * itemCount;
+                args.levelHealthAdd += KnurlLevelHealth.Value * itemCount * 0.01f;
             }
         }
 

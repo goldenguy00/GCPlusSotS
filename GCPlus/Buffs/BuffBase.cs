@@ -35,6 +35,7 @@ namespace GoldenCoastPlusRevived.Buffs
         internal abstract Color color { get; }
         internal abstract bool canStack { get; }
         internal abstract bool isDebuff { get; }
+        internal abstract bool isCooldown { get; }
         internal abstract EliteDef eliteDef { get; }
 
         public BuffDef buffDef;
@@ -48,6 +49,8 @@ namespace GoldenCoastPlusRevived.Buffs
             buffDef.canStack = this.canStack;
             buffDef.isDebuff = this.isDebuff;
             buffDef.eliteDef = this.eliteDef;
+            buffDef.isCooldown = this.isCooldown;
+            buffDef.ignoreGrowthNectar = this.isDebuff || this.isCooldown;
             ContentAddition.AddBuffDef(buffDef);
         }
         internal virtual void AddHooks()
