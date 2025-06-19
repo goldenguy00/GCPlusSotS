@@ -75,8 +75,8 @@ namespace GoldenCoastPlusRevived.Modules
                 if (body)
                 {
                     body.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 2f);
-                    if (UseAdaptiveArmor.Value)
-                        body.inventory?.GiveItem(RoR2Content.Items.AdaptiveArmor);
+                    if (UseAdaptiveArmor.Value && body.inventory)
+                        body.inventory.GiveItem(RoR2Content.Items.AdaptiveArmor, 1 - body.inventory.GetItemCount(RoR2Content.Items.AdaptiveArmor));
                 }
             }
         }
@@ -101,7 +101,7 @@ namespace GoldenCoastPlusRevived.Modules
             FireGoldMegaLaser.projectileFireFrequency = 6f;
 
             origMinDuration = FireGoldMegaLaser.minimumDuration;
-            FireGoldMegaLaser.minimumDuration = 1.5f;
+            FireGoldMegaLaser.minimumDuration = 1f;
 
             origMaxDuration = FireGoldMegaLaser.maximumDuration;
             FireGoldMegaLaser.maximumDuration = 2f;
@@ -157,14 +157,10 @@ namespace GoldenCoastPlusRevived.Modules
 
         private static void GoldshoresBossfight_GiveBuff(GoldshoresBossfight self)
         {
-            var buffCount = 2 - self.serverCycleCount;
-            if (buffCount <= 0)
-                return;
-
-            foreach (var master in CharacterMaster.instancesList)
+            foreach (var master in PlayerCharacterMasterController.instances)
             {
-                if (master?.inventory)
-                    master.inventory.GiveItem(HiddenGoldItem.ItemIndex, buffCount);
+                if (master.master && master.master.inventory)
+                    master.master.inventory.GiveItem(HiddenGoldItem.ItemIndex, 1);
             }
 
             Chat.AddMessage("<style=cShrine>The Guardian blesses you...</style>");
@@ -174,12 +170,12 @@ namespace GoldenCoastPlusRevived.Modules
         private static bool GoldshoresBossfight_ControlVulnerability(bool hasPassed, GoldshoresBossfight self)
         {
             if (!self.scriptedCombatEncounter)
-                return hasPassed;
+                return true;
 
             var mainMaster = self.scriptedCombatEncounter.combatSquad.readOnlyMembersList.FirstOrDefault();
             var mainBody = mainMaster ? mainMaster.GetBody() : null;
             if (!mainBody || !mainBody.healthComponent)
-                return hasPassed;
+                return true;
 
             var combinedHealthFraction = mainBody.healthComponent.combinedHealthFraction;
             if (combinedHealthFraction <= (1f / 3f))
@@ -199,7 +195,7 @@ namespace GoldenCoastPlusRevived.Modules
                     FireGoldFist.fistCount = 998;
                     FireGoldMegaLaser.projectileFireFrequency = 10f;
                     RechargeRocks.rockControllerPrefab.GetComponent<TitanRockController>().fireInterval = 0.25f;
-                    hasPassed = true;
+                    return true;
                 }
             }
             else if (combinedHealthFraction <= (2f / 3f))
@@ -214,11 +210,11 @@ namespace GoldenCoastPlusRevived.Modules
                     FireGoldFist.fistCount = 999;
                     FireGoldMegaLaser.projectileFireFrequency = 8f;
                     RechargeRocks.rockControllerPrefab.GetComponent<TitanRockController>().fireInterval = 0.5f;
-                    hasPassed = true;
+                    return true;
                 }
             }
 
-            return hasPassed;
+            return false;
         }
 
         internal static void GiveAffix(CharacterBody body, Inventory inventory, EliteDef elite)
@@ -245,7 +241,7 @@ namespace GoldenCoastPlusRevived.Modules
                     body.SetBuffCount(elite.eliteEquipmentDef.passiveBuffDef.buffIndex, 1);
             }
 
-            inventory.GiveItem(RoR2Content.Items.BoostHp, Mathf.RoundToInt(elite.healthBoostCoefficient * 10f));
+            //inventory.GiveItem(RoR2Content.Items.BoostHp, Mathf.RoundToInt(elite.healthBoostCoefficient * 10f));
         }
 
         private static void FireGoldFist_PlacePredictedAttack(On.EntityStates.TitanMonster.FireGoldFist.orig_PlacePredictedAttack orig, FireGoldFist self)
