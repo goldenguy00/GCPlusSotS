@@ -89,7 +89,7 @@ namespace GoldenCoastPlusRevived.Items
                         origin = body.coreTransform.position
                     }, transmit: true);
 
-                    Util.PlaySound("Play_bandit_M1_pump", this.gameObject);
+                    Util.PlaySound("Play_UI_obj_casinoChest_swap", this.gameObject);
                 }
             }
             else if (this.body.HasBuff(LaserEyeReady.BuffIndex))

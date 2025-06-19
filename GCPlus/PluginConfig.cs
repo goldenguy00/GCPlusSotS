@@ -69,7 +69,7 @@ namespace GoldenCoastPlusRevived
             FightChanges.BossHealthMult = cfg.BindOptionSlider(section,
                 "Boss Aurelionites health per level multiplier",
                 "Adjust the multiplier on the bosses health per level.",
-                1.25f,
+                1f,
                 0.1f, 5f,
                 Extensions.ConfigFlags.RestartRequired);
 
@@ -80,9 +80,9 @@ namespace GoldenCoastPlusRevived
                 Extensions.ConfigFlags.RestartRequired);
 
             TitanGoldArmorBroken.BossArmorBrokenMult = cfg.BindOptionSlider(section,
-                "Damage taken multiplier debuff",
-                "Adjust the boss's damage taken multiplier as decimal.",
-                1.25f,
+                "Initial Damage taken multiplier debuff",
+                "Adjust the boss's damage taken multiplier, for a short window after each invulnerability phase ends",
+                1.5f,
                 0.1f, 3f,
                 Extensions.ConfigFlags.ServerSided);
 

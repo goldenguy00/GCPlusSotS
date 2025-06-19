@@ -46,7 +46,8 @@ namespace GoldenCoastPlusRevived.Items
             var system = GCPAssets.LaserEyeReady.transform.GetChild(0).GetComponent<ParticleSystem>();
             var main = system.main;
             var color = main.startColor;
-            color.colorMin = Color.yellow;
+            color.colorMin = new Color(1f, 47f / 51f, 0.0156862754f, 0.1f);
+            color.colorMax = Color.yellow;
             main.startColor = color;
 
             system = GCPAssets.LaserEyeReady.transform.GetChild(1).GetComponent<ParticleSystem>();
@@ -59,8 +60,10 @@ namespace GoldenCoastPlusRevived.Items
 
             var size = main.startSize;
             size.constantMin = 1f;
-            size.constantMax = 2f;
+            size.constantMax = 3f;
             main.startSize = size;
+            
+            main.simulationSpeed = 0.5f;
 
             ContentAddition.AddEffect(GCPAssets.LaserEyeBeam);
             ContentAddition.AddEffect(GCPAssets.LaserEyeExplosion);

@@ -36,7 +36,7 @@ namespace GoldenCoastPlusRevived.Modules
                 return;
 
             ModifyAssets();
-
+            On.RoR2.GoldshoresMissionController.SpawnBeacons += GoldshoresMissionController_SpawnBeacons;
             On.EntityStates.Missions.Goldshores.GoldshoresBossfight.OnEnter += GoldshoresBossfight_OnEnter;
             On.EntityStates.Missions.Goldshores.GoldshoresBossfight.OnExit += GoldshoresBossfight_OnExit;
             On.EntityStates.Missions.Goldshores.GoldshoresBossfight.SetBossImmunity += GoldshoresBossfight_SetBossImmunity;
@@ -45,32 +45,18 @@ namespace GoldenCoastPlusRevived.Modules
             On.EntityStates.TitanMonster.FireGoldFist.PlacePredictedAttack += FireGoldFist_PlacePredictedAttack;
         }
 
+        private static void GoldshoresMissionController_SpawnBeacons(On.RoR2.GoldshoresMissionController.orig_SpawnBeacons orig, GoldshoresMissionController self)
+        {
+            self.beaconsToSpawnOnMap = 4;
+            orig(self);
+        }
+
         private static void ModifyAssets()
         {
             Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldBody_prefab).Completed += (task) =>
             {
                 var body = task.Result.GetComponent<CharacterBody>();
                 body.levelMaxHealth *= BossHealthMult.Value;
-            };
-
-            Addressables.LoadAssetAsync<GameObject>(RoR2_Base_goldshores.GoldshoresMissionController_prefab).Completed += (task) =>
-            {
-                var mission = task.Result;
-                var ctrl = mission.GetComponent<GoldshoresMissionController>();
-                ctrl.beaconsToSpawnOnMap = 4;
-            };
-
-            Addressables.LoadAssetAsync<CharacterSpawnCard>(RoR2_Base_Titan.cscTitanGold_asset).Completed += (task) =>
-            {
-                var csc = task.Result;
-                if (BigSword.EnableSword.Value && BigSword.instance?.itemDef)
-                {
-                    HG.ArrayUtils.ArrayAppend(ref csc.itemsToGrant, new ItemCountPair
-                    {
-                        count = 1,
-                        itemDef = BigSword.instance.itemDef
-                    });
-                }
             };
         }
 
@@ -127,8 +113,6 @@ namespace GoldenCoastPlusRevived.Modules
             GoldshoresBossfight.shieldRemovalDuration = BossVulnerabilityTime.Value;
 
             orig(self);
-
-            self.bossInvulnerabilityStartTime = Run.FixedTimeStamp.now + GoldshoresBossfight.shieldRemovalDuration;
         }
 
 
@@ -189,7 +173,7 @@ namespace GoldenCoastPlusRevived.Modules
 
         private static bool GoldshoresBossfight_ControlVulnerability(bool hasPassed, GoldshoresBossfight self)
         {
-            if (!self.scriptedCombatEncounter || self.serverCycleCount > 1)
+            if (!self.scriptedCombatEncounter)
                 return hasPassed;
 
             var mainMaster = self.scriptedCombatEncounter.combatSquad.readOnlyMembersList.FirstOrDefault();
@@ -198,27 +182,9 @@ namespace GoldenCoastPlusRevived.Modules
                 return hasPassed;
 
             var combinedHealthFraction = mainBody.healthComponent.combinedHealthFraction;
-            bool isP1 = combinedHealthFraction <= (2f/3f);
-            bool isP2 = combinedHealthFraction <= (1f/3f);
-
-            if (isP1)
+            if (combinedHealthFraction <= (1f / 3f))
             {
-                if (!hasBuffed1)
-                {
-                    hasBuffed1 = true;
-                    foreach (var master in self.scriptedCombatEncounter.combatSquad.readOnlyMembersList)
-                    {
-                        master?.inventory?.GiveItem(RoR2Content.Items.AlienHead.itemIndex, 1);
-                    }
-                    FireGoldFist.fistCount = 999;
-                    FireGoldMegaLaser.projectileFireFrequency = 8f;
-                    RechargeRocks.rockControllerPrefab.GetComponent<TitanRockController>().fireInterval = 0.5f;
-                }
-                hasPassed = true;
-            }
-            else if (isP2)
-            {
-                if(!hasBuffed2)
+                if (!hasBuffed2)
                 {
                     hasBuffed2 = true;
 
@@ -233,8 +199,23 @@ namespace GoldenCoastPlusRevived.Modules
                     FireGoldFist.fistCount = 998;
                     FireGoldMegaLaser.projectileFireFrequency = 10f;
                     RechargeRocks.rockControllerPrefab.GetComponent<TitanRockController>().fireInterval = 0.25f;
+                    hasPassed = true;
                 }
-                hasPassed = true;
+            }
+            else if (combinedHealthFraction <= (2f / 3f))
+            {
+                if (!hasBuffed1)
+                {
+                    hasBuffed1 = true;
+                    foreach (var master in self.scriptedCombatEncounter.combatSquad.readOnlyMembersList)
+                    {
+                        master?.inventory?.GiveItem(RoR2Content.Items.AlienHead.itemIndex, 1);
+                    }
+                    FireGoldFist.fistCount = 999;
+                    FireGoldMegaLaser.projectileFireFrequency = 8f;
+                    RechargeRocks.rockControllerPrefab.GetComponent<TitanRockController>().fireInterval = 0.5f;
+                    hasPassed = true;
+                }
             }
 
             return hasPassed;
@@ -252,7 +233,8 @@ namespace GoldenCoastPlusRevived.Modules
                     //Fill in first empty equipment slot
                     for (uint i = 0; i <= inventory.GetEquipmentSlotCount(); i++)
                     {
-                        if (inventory.GetEquipment(i).equipmentIndex == EquipmentIndex.None)
+                        if (inventory.GetEquipment(i).equipmentIndex == EquipmentIndex.None ||
+                            inventory.GetEquipment(i).equipmentIndex == elite.eliteEquipmentDef.equipmentIndex)
                         {
                             inventory.SetEquipmentIndexForSlot(elite.eliteEquipmentDef.equipmentIndex, i);
                             break;
