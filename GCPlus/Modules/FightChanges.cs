@@ -17,7 +17,6 @@ namespace GoldenCoastPlusRevived.Modules
     internal static class FightChanges
     {
         public static ConfigEntry<bool> EnableFightChanges { get; set; }
-        public static ConfigEntry<int> BossVulnerabilityTime { get; set; }
         public static ConfigEntry<float> BossHealthMult { get; set; }
         public static ConfigEntry<bool> UseAdaptiveArmor { get; set; }
 
@@ -25,7 +24,6 @@ namespace GoldenCoastPlusRevived.Modules
         private static float origMaxDuration;
         private static int origFistCount;
         private static float origProjectileFrequency;
-        private static float origInterval;
 
         private static bool hasBuffed1;
         private static bool hasBuffed2;
@@ -36,6 +34,7 @@ namespace GoldenCoastPlusRevived.Modules
                 return;
 
             ModifyAssets();
+
             On.RoR2.GoldshoresMissionController.SpawnBeacons += GoldshoresMissionController_SpawnBeacons;
             On.EntityStates.Missions.Goldshores.GoldshoresBossfight.OnEnter += GoldshoresBossfight_OnEnter;
             On.EntityStates.Missions.Goldshores.GoldshoresBossfight.OnExit += GoldshoresBossfight_OnExit;
@@ -48,6 +47,7 @@ namespace GoldenCoastPlusRevived.Modules
         private static void GoldshoresMissionController_SpawnBeacons(On.RoR2.GoldshoresMissionController.orig_SpawnBeacons orig, GoldshoresMissionController self)
         {
             self.beaconsToSpawnOnMap = 4;
+
             orig(self);
         }
 
@@ -75,8 +75,6 @@ namespace GoldenCoastPlusRevived.Modules
                 if (body)
                 {
                     body.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 2f);
-                    if (UseAdaptiveArmor.Value && body.inventory)
-                        body.inventory.GiveItem(RoR2Content.Items.AdaptiveArmor, 1 - body.inventory.GetItemCount(RoR2Content.Items.AdaptiveArmor));
                 }
             }
         }
@@ -87,7 +85,6 @@ namespace GoldenCoastPlusRevived.Modules
             FireGoldMegaLaser.projectileFireFrequency = origProjectileFrequency;
             FireGoldMegaLaser.minimumDuration = origMinDuration;
             FireGoldMegaLaser.maximumDuration = origMaxDuration;
-            RechargeRocks.rockControllerPrefab.GetComponent<TitanRockController>().fireInterval = origInterval;
 
             orig(self);
         }
@@ -98,19 +95,15 @@ namespace GoldenCoastPlusRevived.Modules
             FireGoldFist.fistCount = 6;
 
             origProjectileFrequency = FireGoldMegaLaser.projectileFireFrequency;
-            FireGoldMegaLaser.projectileFireFrequency = 6f;
+            FireGoldMegaLaser.projectileFireFrequency = 8f;
 
             origMinDuration = FireGoldMegaLaser.minimumDuration;
-            FireGoldMegaLaser.minimumDuration = 1f;
+            FireGoldMegaLaser.minimumDuration = 1.5f;
 
             origMaxDuration = FireGoldMegaLaser.maximumDuration;
             FireGoldMegaLaser.maximumDuration = 2f;
 
-            var rockCtrl = RechargeRocks.rockControllerPrefab.GetComponent<TitanRockController>();
-            origInterval = rockCtrl.fireInterval;
-            rockCtrl.fireInterval = 1.5f;
-
-            GoldshoresBossfight.shieldRemovalDuration = BossVulnerabilityTime.Value;
+            GoldshoresBossfight.shieldRemovalDuration = int.MaxValue;
 
             orig(self);
         }
@@ -119,6 +112,7 @@ namespace GoldenCoastPlusRevived.Modules
         private static void GoldshoresBossfight_SetBossImmunity(On.EntityStates.Missions.Goldshores.GoldshoresBossfight.orig_SetBossImmunity orig, GoldshoresBossfight self, bool newBossImmunity)
         {
             var oldBossImmunity = self.bossImmunity;
+
             orig(self, newBossImmunity);
 
             if (!self.scriptedCombatEncounter || newBossImmunity || newBossImmunity == oldBossImmunity)
@@ -129,7 +123,7 @@ namespace GoldenCoastPlusRevived.Modules
                 var body = master.GetBody();
                 if (body)
                 {
-                    body.AddTimedBuff(TitanGoldArmorBroken.BuffIndex, 5f);
+                    body.AddTimedBuff(TitanGoldArmorBroken.BuffIndex, 10f);
                 }
             }
         }
@@ -193,8 +187,6 @@ namespace GoldenCoastPlusRevived.Modules
                         }
                     }
                     FireGoldFist.fistCount = 998;
-                    FireGoldMegaLaser.projectileFireFrequency = 10f;
-                    RechargeRocks.rockControllerPrefab.GetComponent<TitanRockController>().fireInterval = 0.25f;
                     return true;
                 }
             }
@@ -205,11 +197,10 @@ namespace GoldenCoastPlusRevived.Modules
                     hasBuffed1 = true;
                     foreach (var master in self.scriptedCombatEncounter.combatSquad.readOnlyMembersList)
                     {
-                        master?.inventory?.GiveItem(RoR2Content.Items.AlienHead.itemIndex, 1);
+                        if (master.inventory)
+                            master.inventory.GiveItem(RoR2Content.Items.AlienHead.itemIndex, 1);
                     }
                     FireGoldFist.fistCount = 999;
-                    FireGoldMegaLaser.projectileFireFrequency = 8f;
-                    RechargeRocks.rockControllerPrefab.GetComponent<TitanRockController>().fireInterval = 0.5f;
                     return true;
                 }
             }
@@ -240,8 +231,6 @@ namespace GoldenCoastPlusRevived.Modules
                 if (elite.eliteEquipmentDef.passiveBuffDef.buffIndex != BuffIndex.None)
                     body.SetBuffCount(elite.eliteEquipmentDef.passiveBuffDef.buffIndex, 1);
             }
-
-            //inventory.GiveItem(RoR2Content.Items.BoostHp, Mathf.RoundToInt(elite.healthBoostCoefficient * 10f));
         }
 
         private static void FireGoldFist_PlacePredictedAttack(On.EntityStates.TitanMonster.FireGoldFist.orig_PlacePredictedAttack orig, FireGoldFist self)

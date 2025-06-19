@@ -5,12 +5,12 @@
 - Fixed item descriptions being incorrect
 
 - Fixed Boss attacks being out of order
+- Removed timed phases in favor of 3 health-based phases
+- Enrage mode P3
 - Added adaptive armor to boss
 - Shortened laser duration
-- Gold Affix is now given on p3
-- Fixed phases being inconsistent when the time elapsed
 - Added brief invuln time on spawn
-- Re-added broken armor window
+- Improved broken armor debuff to fit better with current stats
 
 - Titanic Sword mostly unchanged
 - 5% for 1250% TOTAL damage

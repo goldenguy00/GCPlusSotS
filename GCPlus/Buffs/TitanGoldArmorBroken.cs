@@ -30,11 +30,37 @@ namespace GoldenCoastPlusRevived.Buffs
         internal override void AddHooks()
         {
             On.RoR2.HealthComponent.TakeDamageProcess += HealthComponent_TakeDamageProcess;
+            if (FightChanges.UseAdaptiveArmor.Value)
+            {
+                On.RoR2.CharacterBody.OnBuffFirstStackGained += CharacterBody_OnBuffFirstStackGained;
+                On.RoR2.CharacterBody.OnBuffFinalStackLost += CharacterBody_OnBuffFinalStackLost;
+            }
         }
 
-        private static void HealthComponent_TakeDamageProcess(On.RoR2.HealthComponent.orig_TakeDamageProcess orig, HealthComponent self, DamageInfo damageInfo)
+        private void CharacterBody_OnBuffFinalStackLost(On.RoR2.CharacterBody.orig_OnBuffFinalStackLost orig, CharacterBody self, BuffDef buffDef)
         {
-            if (self.body && self.body.HasBuff(TitanGoldArmorBroken.BuffIndex))
+            orig(self, buffDef);
+
+            if (buffDef == this.buffDef && self.inventory && self.inventory.GetItemCount(RoR2Content.Items.AdaptiveArmor) != 1)
+            {
+                self.inventory.ResetItem(RoR2Content.Items.AdaptiveArmor);
+                self.inventory.GiveItem(RoR2Content.Items.AdaptiveArmor);
+            }
+        }
+
+        private void CharacterBody_OnBuffFirstStackGained(On.RoR2.CharacterBody.orig_OnBuffFirstStackGained orig, CharacterBody self, BuffDef buffDef)
+        {
+            orig(self, buffDef);
+
+            if (buffDef == this.buffDef && self.inventory && self.inventory.GetItemCount(RoR2Content.Items.AdaptiveArmor) > 0)
+            {
+                self.inventory.ResetItem(RoR2Content.Items.AdaptiveArmor);
+            }
+        }
+
+        private void HealthComponent_TakeDamageProcess(On.RoR2.HealthComponent.orig_TakeDamageProcess orig, HealthComponent self, DamageInfo damageInfo)
+        {
+            if (self.body && self.body.HasBuff(this.buffDef))
                 damageInfo.damage *= BossArmorBrokenMult.Value;
 
             orig(self, damageInfo);

@@ -59,13 +59,6 @@ namespace GoldenCoastPlusRevived
                 true, 
                 Extensions.ConfigFlags.RestartRequired);
 
-            FightChanges.BossVulnerabilityTime = cfg.BindOptionSlider(section,
-                "Vulnerability Time",
-                "Time in seconds that Aurelionite becomes vulnerable per phase",
-                20,
-                0, 100,
-                Extensions.ConfigFlags.ServerSided);
-
             FightChanges.BossHealthMult = cfg.BindOptionSlider(section,
                 "Boss Aurelionites health per level multiplier",
                 "Adjust the multiplier on the bosses health per level.",
