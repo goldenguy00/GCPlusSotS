@@ -8,7 +8,7 @@ using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RoR2;
-using RoR2BepInExPack.GameAssetPaths;
+using RoR2BepInExPack.GameAssetPaths.Version_1_35_0;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -41,7 +41,7 @@ namespace GoldenCoastPlusRevived.Modules
             On.EntityStates.Missions.Goldshores.GoldshoresBossfight.SetBossImmunity += GoldshoresBossfight_SetBossImmunity;
             On.EntityStates.Missions.Goldshores.GoldshoresBossfight.SpawnBoss += GoldshoresBossfight_SpawnBoss;
             IL.EntityStates.Missions.Goldshores.GoldshoresBossfight.ServerFixedUpdate += GoldshoresBossfight_ServerFixedUpdate;
-            On.EntityStates.TitanMonster.FireGoldFist.PlacePredictedAttack += FireGoldFist_PlacePredictedAttack;
+            //On.EntityStates.TitanMonster.FireGoldFist.PlacePredictedAttack += FireGoldFist_PlacePredictedAttack;
         }
 
         private static void GoldshoresMissionController_SpawnBeacons(On.RoR2.GoldshoresMissionController.orig_SpawnBeacons orig, GoldshoresMissionController self)
@@ -53,11 +53,8 @@ namespace GoldenCoastPlusRevived.Modules
 
         private static void ModifyAssets()
         {
-            Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldBody_prefab).Completed += (task) =>
-            {
-                var body = task.Result.GetComponent<CharacterBody>();
-                body.levelMaxHealth *= BossHealthMult.Value;
-            };
+            var body = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldBody_prefab).WaitForCompletion().GetComponent<CharacterBody>();
+            body.levelMaxHealth *= BossHealthMult.Value;
         }
 
         private static void GoldshoresBossfight_SpawnBoss(On.EntityStates.Missions.Goldshores.GoldshoresBossfight.orig_SpawnBoss orig, GoldshoresBossfight self)
@@ -101,7 +98,7 @@ namespace GoldenCoastPlusRevived.Modules
             FireGoldMegaLaser.minimumDuration = 1.5f;
 
             origMaxDuration = FireGoldMegaLaser.maximumDuration;
-            FireGoldMegaLaser.maximumDuration = 2f;
+            FireGoldMegaLaser.maximumDuration = 3f;
 
             GoldshoresBossfight.shieldRemovalDuration = int.MaxValue;
 
@@ -177,16 +174,11 @@ namespace GoldenCoastPlusRevived.Modules
                 if (!hasBuffed2)
                 {
                     hasBuffed2 = true;
-
                     foreach (var master in self.scriptedCombatEncounter.combatSquad.readOnlyMembersList)
                     {
-                        var body = master.GetBody();
-                        if (body && master.inventory)
-                        {
-                            GiveAffix(body, master.inventory, DLC2Content.Elites.Aurelionite);
-                        }
+                        if (master.inventory)
+                            master.inventory.GiveItem(RoR2Content.Items.AlienHead.itemIndex, 1);
                     }
-                    FireGoldFist.fistCount = 998;
                     return true;
                 }
             }
@@ -197,10 +189,12 @@ namespace GoldenCoastPlusRevived.Modules
                     hasBuffed1 = true;
                     foreach (var master in self.scriptedCombatEncounter.combatSquad.readOnlyMembersList)
                     {
-                        if (master.inventory)
-                            master.inventory.GiveItem(RoR2Content.Items.AlienHead.itemIndex, 1);
+                        var body = master.GetBody();
+                        if (body && master.inventory)
+                        {
+                            GiveAffix(body, master.inventory, DLC2Content.Elites.Aurelionite);
+                        }
                     }
-                    FireGoldFist.fistCount = 999;
                     return true;
                 }
             }
@@ -220,10 +214,12 @@ namespace GoldenCoastPlusRevived.Modules
                     //Fill in first empty equipment slot
                     for (uint i = 0; i <= inventory.GetEquipmentSlotCount(); i++)
                     {
-                        if (inventory.GetEquipment(i).equipmentIndex == EquipmentIndex.None ||
-                            inventory.GetEquipment(i).equipmentIndex == elite.eliteEquipmentDef.equipmentIndex)
+                        if (inventory.GetEquipment(i, 0).equipmentIndex == EquipmentIndex.None ||
+                            inventory.GetEquipment(i, 0).equipmentIndex == elite.eliteEquipmentDef.equipmentIndex)
                         {
-                            inventory.SetEquipmentIndexForSlot(elite.eliteEquipmentDef.equipmentIndex, i);
+                            inventory.SetEquipmentIndexForSlot(elite.eliteEquipmentDef.equipmentIndex, i, 0);
+                            inventory.SetActiveEquipmentSlot((byte)i);
+                            inventory.SetActiveEquipmentSet(0);
                             break;
                         }
                     }
@@ -235,23 +231,21 @@ namespace GoldenCoastPlusRevived.Modules
 
         private static void FireGoldFist_PlacePredictedAttack(On.EntityStates.TitanMonster.FireGoldFist.orig_PlacePredictedAttack orig, FireGoldFist self)
         {
-            bool hit4 = FireGoldFist.fistCount == 999;
-            bool hit8 = FireGoldFist.fistCount == 998;
-            if (!hit4 && !hit8)
+            if (!hasBuffed1 && !hasBuffed2)
             {
                 orig(self);
                 return;
             }
 
-            var rnd = Random.Range(0f, 360f);
-            int iMax = hit4 ? 4 : 8;
-            float angle = hit4 ? 90f : 45f;
+            float startAngle = Random.Range(0, 360);
+            int maxAngles = hasBuffed2 ? 6 : 4;
+            int deltaAngle = 360 / maxAngles;
 
-            for (var i = 0; i < iMax; i++)
+            for (var i = 0; i < maxAngles; i++)
             {
-                for (var j = 0; j < 6; j++)
+                for (var j = 0; j < FireGoldFist.fistCount + (maxAngles / 2); j++)
                 {
-                    var vector = Quaternion.Euler(0f, rnd + (angle * i), 0f) * Vector3.forward;
+                    var vector = Quaternion.Euler(0f, startAngle + i * deltaAngle, 0f) * Vector3.forward;
                     var vector2 = self.predictedTargetPosition + (vector * FireGoldFist.distanceBetweenFists * j);
 
                     if (Physics.Raycast(new Ray(vector2 + (Vector3.up * 30f), Vector3.down), out var raycastHit, 60f, LayerIndex.world.mask, QueryTriggerInteraction.Ignore))

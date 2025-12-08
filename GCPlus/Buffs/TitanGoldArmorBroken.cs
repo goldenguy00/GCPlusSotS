@@ -1,7 +1,8 @@
 ﻿using BepInEx.Configuration;
 using GoldenCoastPlusRevived.Modules;
+using R2API;
 using RoR2;
-using RoR2BepInExPack.GameAssetPaths;
+using RoR2BepInExPack.GameAssetPaths.Version_1_35_0;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -30,6 +31,7 @@ namespace GoldenCoastPlusRevived.Buffs
         internal override void AddHooks()
         {
             On.RoR2.HealthComponent.TakeDamageProcess += HealthComponent_TakeDamageProcess;
+            R2API.RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
             if (FightChanges.UseAdaptiveArmor.Value)
             {
                 On.RoR2.CharacterBody.OnBuffFirstStackGained += CharacterBody_OnBuffFirstStackGained;
@@ -37,14 +39,22 @@ namespace GoldenCoastPlusRevived.Buffs
             }
         }
 
+        private void RecalculateStatsAPI_GetStatCoefficients(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            if (sender.HasBuff(this.buffDef))
+            {
+                args.armorTotalMult = 0f;
+            }
+        }
+
         private void CharacterBody_OnBuffFinalStackLost(On.RoR2.CharacterBody.orig_OnBuffFinalStackLost orig, CharacterBody self, BuffDef buffDef)
         {
             orig(self, buffDef);
 
-            if (buffDef == this.buffDef && self.inventory && self.inventory.GetItemCount(RoR2Content.Items.AdaptiveArmor) != 1)
+            if (buffDef == this.buffDef && self.inventory && self.inventory.GetItemCountPermanent(RoR2Content.Items.AdaptiveArmor) != 1)
             {
-                self.inventory.ResetItem(RoR2Content.Items.AdaptiveArmor);
-                self.inventory.GiveItem(RoR2Content.Items.AdaptiveArmor);
+                self.inventory.ResetItemPermanent(RoR2Content.Items.AdaptiveArmor);
+                self.inventory.GiveItemPermanent(RoR2Content.Items.AdaptiveArmor);
             }
         }
 
@@ -52,9 +62,9 @@ namespace GoldenCoastPlusRevived.Buffs
         {
             orig(self, buffDef);
 
-            if (buffDef == this.buffDef && self.inventory && self.inventory.GetItemCount(RoR2Content.Items.AdaptiveArmor) > 0)
+            if (buffDef == this.buffDef && self.inventory && self.inventory.GetItemCountPermanent(RoR2Content.Items.AdaptiveArmor) > 0)
             {
-                self.inventory.ResetItem(RoR2Content.Items.AdaptiveArmor);
+                self.inventory.ResetItemPermanent(RoR2Content.Items.AdaptiveArmor);
             }
         }
 

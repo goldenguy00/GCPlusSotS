@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using BepInEx.Configuration;
 using GoldenCoastPlusRevived.Modules;
+using HG;
 using R2API;
 using RoR2;
-using RoR2BepInExPack.GameAssetPaths;
+using RoR2BepInExPack.GameAssetPaths.Version_1_35_0;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -41,8 +42,11 @@ namespace GoldenCoastPlusRevived.Items
         internal override void AddItem()
         {
             GCPAssets.LaserEyeBeam = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Golem.TracerGolem_prefab).WaitForCompletion().InstantiateClone("GCPLaserEyeBeam", true);
+			GCPAssets.LaserEyeBeam.EnsureComponent<NetworkIdentity>();
             GCPAssets.LaserEyeExplosion = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Golem.ExplosionGolem_prefab).WaitForCompletion().InstantiateClone("GCPLaserEyeExplosion", true);
+			GCPAssets.LaserEyeExplosion.EnsureComponent<NetworkIdentity>();
             GCPAssets.LaserEyeReady = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Common_VFX.ShieldBreakEffect_prefab).WaitForCompletion().InstantiateClone("GCPLaserEyeReady", true);
+			GCPAssets.LaserEyeReady.EnsureComponent<NetworkIdentity>();
             var system = GCPAssets.LaserEyeReady.transform.GetChild(0).GetComponent<ParticleSystem>();
             var main = system.main;
             var color = main.startColor;
@@ -107,9 +111,9 @@ namespace GoldenCoastPlusRevived.Items
 
         private void CharacterBody_onBodyInventoryChangedGlobal(CharacterBody body)
         {
-            if (NetworkServer.active)
+            if (NetworkServer.active && body.inventory)
             {
-                body.AddItemBehavior<LaserEyeBehavior>(body.inventory.GetItemCount(itemDef));
+                body.AddItemBehavior<LaserEyeBehavior>(body.inventory.GetItemCountPermanent(itemDef));
             }
         }
 

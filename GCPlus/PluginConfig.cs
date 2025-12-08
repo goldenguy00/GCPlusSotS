@@ -62,7 +62,7 @@ namespace GoldenCoastPlusRevived
             FightChanges.BossHealthMult = cfg.BindOptionSlider(section,
                 "Boss Aurelionites health per level multiplier",
                 "Adjust the multiplier on the bosses health per level.",
-                1f,
+                1.5f,
                 0.1f, 5f,
                 Extensions.ConfigFlags.RestartRequired);
 
@@ -75,15 +75,15 @@ namespace GoldenCoastPlusRevived
             TitanGoldArmorBroken.BossArmorBrokenMult = cfg.BindOptionSlider(section,
                 "Initial Damage taken multiplier debuff",
                 "Adjust the boss's damage taken multiplier, for a short window after each invulnerability phase ends",
-                1.5f,
-                0.1f, 3f,
+                2f,
+                1f, 5f,
                 Extensions.ConfigFlags.ServerSided);
 
             HiddenGoldItem.AurelioniteBlessingGoldGain = cfg.BindOptionSlider(section,
                 "Aurelionites Blessing gold gain multiplier",
-                "Adjust the percent additional gold gain.",
-                25f,
-                0f, 100f,
+                "Adjust the percent additional gold gain, in percent.",
+                40,
+                1, 100,
                 Extensions.ConfigFlags.ServerSided);
         }
 
@@ -105,7 +105,7 @@ namespace GoldenCoastPlusRevived
             BigSword.SwordChance = cfg.BindOptionSlider(section, 
                 "Titanic Greatsword Chance", 
                 "Adjust Titanic Greatsword's chance to proc, as a percentage.",
-                5f,
+                10f,
                 1f, 100f, 
                 Extensions.ConfigFlags.ServerSided);
 
@@ -140,7 +140,7 @@ namespace GoldenCoastPlusRevived
             GoldenKnurl.KnurlLevelArmor = cfg.BindOptionSlider(section,
                 "Golden Knurl Armor", 
                 "Adjust how much armor per level Golden Knurl grants.",
-                3f,
+                2f,
                 0f, 10f);
         }
         
@@ -162,7 +162,7 @@ namespace GoldenCoastPlusRevived
             LaserEye.EyeTargetsPerStack = cfg.BindOptionSlider(section,
                 "Guardians Eye Max Targets",
                 "Adjust the max targets per stack the Guardian's Eye will hit.",
-                2,
+                3,
                 1, 10,
                 Extensions.ConfigFlags.ServerSided);
 
@@ -177,7 +177,7 @@ namespace GoldenCoastPlusRevived
                 "Guardians Eye Range",
                 "Adjust the targeting range of Guardian's Eye.",
                 30f,
-                1f, 100f,
+                10f, 100f,
                 Extensions.ConfigFlags.ServerSided);
 
             LaserEye.EyeStacksMultiplier = cfg.BindOptionSlider(section,

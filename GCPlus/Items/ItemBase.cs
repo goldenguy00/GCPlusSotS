@@ -39,7 +39,7 @@ namespace GoldenCoastPlusRevived.Items
         internal abstract GameObject modelPrefab { get; }
         internal abstract Sprite iconSprite { get; }
         internal abstract ItemTier Tier { get; }
-        internal virtual ItemTag[] ItemTags { get; set; } = new ItemTag[] { };
+        internal virtual ItemTag[] ItemTags { get; set; } = [];
         internal abstract bool hidden { get; }
 
         public ItemDef itemDef;

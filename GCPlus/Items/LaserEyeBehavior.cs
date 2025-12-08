@@ -1,12 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using GoldenCoastPlusRevived.Buffs;
 using GoldenCoastPlusRevived.Modules;
 using RoR2;
-using RoR2BepInExPack.GameAssetPaths;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.Android;
 
 namespace GoldenCoastPlusRevived.Items
 {
@@ -15,9 +11,6 @@ namespace GoldenCoastPlusRevived.Items
         private float timer;
         private float goldTarget = 25;
         private float goldCollected;
-
-        public int MaxTargets => base.stack * LaserEye.EyeTargetsPerStack.Value;
-
 
         public void Awake()
         {
@@ -43,15 +36,15 @@ namespace GoldenCoastPlusRevived.Items
             {
                 this.body.SetBuffCount(LaserEyeCharge.BuffIndex, 0);
                 this.body.SetBuffCount(LaserEyeReady.BuffIndex, 0);
-
-                if (this.body.master)
-                    this.body.master.OnGoldCollected -= Master_OnGoldCollected;
             }
+
+            if (!ReferenceEquals(this.body?.master, null))
+                this.body.master.OnGoldCollected -= Master_OnGoldCollected;
         }
 
         private void FixedUpdate()
 		{
-            if (!this.body)
+            if (!this.body || !this.body.inventory)
                 return;
 
             this.timer -= Time.fixedDeltaTime;
@@ -89,7 +82,7 @@ namespace GoldenCoastPlusRevived.Items
                         origin = body.coreTransform.position
                     }, transmit: true);
 
-                    Util.PlaySound("Play_UI_obj_casinoChest_swap", this.gameObject);
+                    Util.PlaySound("Play_UI_obj_casinoChest_swap", this.body.gameObject);
                 }
             }
             else if (this.body.HasBuff(LaserEyeReady.BuffIndex))
@@ -106,40 +99,41 @@ namespace GoldenCoastPlusRevived.Items
 
         private void FireLaser()
         {
+            int maxTargets = this.body.inventory.GetItemCountEffective(LaserEye.instance.itemDef) * LaserEye.EyeTargetsPerStack.Value;
+            if (maxTargets == 0)
+                return;
+
             var bs = new BullseyeSearch
             {
                 teamMaskFilter = TeamMask.all,
                 filterByDistinctEntity = true,
                 filterByLoS = true,
                 sortMode = BullseyeSearch.SortMode.Distance,
-                queryTriggerInteraction = QueryTriggerInteraction.UseGlobal,
-                maxDistanceFilter = 30f,
+                maxDistanceFilter = LaserEye.EyeMaxRange.Value,
                 viewer = this.body,
                 searchOrigin = this.body.corePosition
             };
             bs.teamMaskFilter.RemoveTeam(this.body.teamComponent.teamIndex);
             bs.RefreshCandidates();
-            var results = bs.GetResults();
-
-            if (!results.Any())
-                return;
 
             int childIndex = -1;
-
             var model = this.body.modelLocator ? this.body.modelLocator.modelTransform : null;
-            if (model && model.TryGetComponent<ChildLocator>(out var childLoc)) 
+            if (model && model.TryGetComponent<ChildLocator>(out var childLoc))
+            {
                 childIndex = childLoc.FindChildIndex("Head");
+            }
 
             int enemiesSmited = 0;
-            foreach (var enemy in results)
+            foreach (var enemy in bs.GetResults())
             {
-                if (enemiesSmited > MaxTargets)
+                if (maxTargets <= enemiesSmited)
                     break;
 
                 enemiesSmited++;
+
                 new BlastAttack
                 {
-                    attacker = this.gameObject,
+                    attacker = this.body.gameObject,
                     teamIndex = base.body.teamComponent.teamIndex,
                     procCoefficient = LaserEye.EyeBlastProcCoeff.Value,
                     baseDamage = base.body.damage * LaserEye.EyeDamage.Value,
@@ -154,17 +148,15 @@ namespace GoldenCoastPlusRevived.Items
                     origin = enemy.transform.position,
                     start = this.body.aimOrigin
                 };
-                effectData.SetChildLocatorTransformReference(base.gameObject, childIndex);
+                effectData.SetChildLocatorTransformReference(this.body.gameObject, childIndex);
 
                 EffectManager.SpawnEffect(GCPAssets.LaserEyeBeam, effectData, transmit: true);
                 EffectManager.SpawnEffect(GCPAssets.LaserEyeExplosion, effectData, transmit: true);
+                goldCollected = 0f;
             }
 
             if (enemiesSmited > 0)
-            {
-                Util.PlaySound(EntityStates.GolemMonster.FireLaser.attackSoundString, this.gameObject);
-                goldCollected = 0f;
-            }
-		}
+                Util.PlaySound(EntityStates.GolemMonster.FireLaser.attackSoundString, this.body.gameObject);
+        }
 	}
 }

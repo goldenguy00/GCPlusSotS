@@ -1,4 +1,5 @@
-﻿using BepInEx.Configuration;
+﻿using System;
+using BepInEx.Configuration;
 using GoldenCoastPlusRevived.Buffs;
 using GoldenCoastPlusRevived.Modules;
 using RoR2;
@@ -21,7 +22,7 @@ namespace GoldenCoastPlusRevived.Items
         internal override ItemTier Tier => ItemTier.NoTier;
         internal override ItemTag[] ItemTags => new ItemTag[] { ItemTag.BrotherBlacklist, ItemTag.CannotDuplicate, ItemTag.WorldUnique };
         internal override bool hidden => true;
-        public static ConfigEntry<float> AurelioniteBlessingGoldGain { get; set; }
+        public static ConfigEntry<int> AurelioniteBlessingGoldGain { get; set; }
 
 
         internal override void AddHooks()
@@ -32,21 +33,21 @@ namespace GoldenCoastPlusRevived.Items
 
         private void CharacterBody_onBodyInventoryChangedGlobal(CharacterBody body)
         {
-            if (NetworkServer.active)
+            if (NetworkServer.active && body.inventory)
             {
-                body.SetBuffCount(HiddenGoldBuff.BuffIndex, body.inventory.GetItemCount(HiddenGoldItem.ItemIndex));
+                body.SetBuffCount(HiddenGoldBuff.BuffIndex, body.inventory.GetItemCountEffective(HiddenGoldItem.ItemIndex));
             }
         }
 
         private static void CharacterMaster_GiveMoney(On.RoR2.CharacterMaster.orig_GiveMoney orig, CharacterMaster self, uint amount)
         {
-            if (amount > 0)
+            if (amount > 0 && self.inventory)
             {
-                var itemCount = self.inventory?.GetItemCount(HiddenGoldItem.ItemIndex) ?? 0;
+                var itemCount = self.inventory.GetItemCountEffective(HiddenGoldItem.ItemIndex);
                 if (itemCount > 0)
                 {
-                    var addedPercent = itemCount * AurelioniteBlessingGoldGain.Value;
-                    amount += (uint)Mathf.CeilToInt(amount * addedPercent);
+                    var addedPercent = itemCount * (AurelioniteBlessingGoldGain.Value * 0.01f);
+                    amount += Math.Max(0, (uint)Mathf.CeilToInt(amount * addedPercent));
                 }
             }
 

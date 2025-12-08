@@ -2,7 +2,7 @@
 using GoldenCoastPlusRevived.Modules;
 using R2API;
 using RoR2;
-using RoR2BepInExPack.GameAssetPaths;
+using RoR2BepInExPack.GameAssetPaths.Version_1_35_0;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -79,7 +79,10 @@ namespace GoldenCoastPlusRevived.Items
 
         private static void GoldenKnurlStatChanges(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
         {
-            var itemCount = sender.inventory?.GetItemCount(GoldenKnurl.ItemIndex) ?? 0;
+			if (!sender || !sender.inventory)
+				return;
+
+            var itemCount = sender.inventory.GetItemCountEffective(GoldenKnurl.ItemIndex);
             if (itemCount > 0)
             {
                 args.levelArmorAdd += KnurlLevelArmor.Value * itemCount;

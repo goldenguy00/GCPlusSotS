@@ -1,6 +1,6 @@
 ﻿using GoldenCoastPlusRevived.Items;
 using RoR2;
-using RoR2BepInExPack.GameAssetPaths;
+using RoR2BepInExPack.GameAssetPaths.Version_1_35_0;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 

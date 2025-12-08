@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using BepInEx.Configuration;
 using GoldenCoastPlusRevived.Modules;
+using HG;
 using R2API;
 using RoR2;
 using RoR2.Projectile;
-using RoR2BepInExPack.GameAssetPaths;
+using RoR2BepInExPack.GameAssetPaths.Version_1_35_0;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -25,7 +26,7 @@ namespace GoldenCoastPlusRevived.Items
         internal override GameObject modelPrefab => GCPAssets.BigSwordPrefab;
         internal override Sprite iconSprite => GCPAssets.BigSwordIcon;
         internal override ItemTier Tier => ItemTier.Boss;
-        internal override ItemTag[] ItemTags => new ItemTag[] { ItemTag.BrotherBlacklist, ItemTag.CannotDuplicate, ItemTag.WorldUnique };
+        internal override ItemTag[] ItemTags => [ ItemTag.BrotherBlacklist, ItemTag.CannotDuplicate, ItemTag.WorldUnique ];
         internal override bool hidden => false;
 
         public static ConfigEntry<bool> EnableSword { get; set; }
@@ -37,13 +38,14 @@ namespace GoldenCoastPlusRevived.Items
 
         internal override void AddItem()
         {
-            GCPAssets.SwordProjectile = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldPreFistProjectile_prefab).WaitForCompletion().InstantiateClone("GCPSwordProjectile", true);
-            GCPAssets.SwordProjectile.GetComponent<ProjectileController>().procCoefficient = BigSword.SwordProcCoeff.Value;
-            GCPAssets.SwordProjectile.GetComponent<ProjectileImpactExplosion>().blastProcCoefficient = BigSword.SwordProcCoeff.Value;
-            GCPAssets.SwordProjectile.GetComponent<ProjectileDamage>().damage = BigSword.SwordDamage.Value;
-            GCPAssets.SwordProjectile.GetComponent<ProjectileImpactExplosion>().blastDamageCoefficient = BigSword.SwordDamage.Value;
+            var swordProj = GCPAssets.SwordProjectile = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldPreFistProjectile_prefab).WaitForCompletion().InstantiateClone("GCPSwordProjectile", true);
 
-            ContentAddition.AddProjectile(GCPAssets.SwordProjectile);
+            ContentAddition.AddProjectile(swordProj);
+
+            swordProj.GetComponent<ProjectileController>().procCoefficient = BigSword.SwordProcCoeff.Value;
+            swordProj.GetComponent<ProjectileImpactExplosion>().blastProcCoefficient = BigSword.SwordProcCoeff.Value;
+            swordProj.GetComponent<ProjectileDamage>().damage = BigSword.SwordDamage.Value;
+            swordProj.GetComponent<ProjectileImpactExplosion>().blastDamageCoefficient = BigSword.SwordDamage.Value;
 
             var model = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldBody_prefab).WaitForCompletion().GetComponent<ModelLocator>().modelTransform;
             GCPAssets.BigSwordPrefab = model.Find("TitanArmature/ROOT/base/stomach/chest/upper_arm.r/lower_arm.r/hand.r/RightFist").gameObject.InstantiateClone("GCPPickupBigSword", false);
@@ -63,8 +65,11 @@ namespace GoldenCoastPlusRevived.Items
             }
 
             GCPAssets.BigSwordPrefab.AddComponent<ItemDisplay>().rendererInfos = [.. infos];
-            GCPAssets.BigSwordPrefab.AddComponent<ModelPanelParameters>().focusPointTransform = new GameObject("FocusPoint").transform;
-            GCPAssets.BigSwordPrefab.GetComponent<ModelPanelParameters>().cameraPositionTransform = new GameObject("CameraPosition").transform;
+			var mpp = GCPAssets.BigSwordPrefab.AddComponent<ModelPanelParameters>();
+			mpp.focusPointTransform = GCPAssets.BigSwordPrefab.transform;
+            mpp.cameraPositionTransform = GCPAssets.BigSwordPrefab.transform;
+			mpp.maxDistance += 10;
+			mpp.minDistance += 5;
 
             base.AddItem();
 
@@ -85,32 +90,29 @@ namespace GoldenCoastPlusRevived.Items
         {
             orig(self, damageInfo, victim);
 
-            if (!damageInfo.attacker)
-                return;
+            var attackerBody = damageInfo.attacker.AsValidOrNull()?.GetComponent<CharacterBody>();
+			if (!attackerBody || !attackerBody.inventory)
+				return;
 
-            var attackerBody = damageInfo?.attacker ? damageInfo.attacker.GetComponent<CharacterBody>() : null;
-            var victimBody = victim ? victim.GetComponent<CharacterBody>() : null;
-            if (!(attackerBody && victimBody))
-                return;
-
-            var itemCount = attackerBody.inventory?.GetItemCount(BigSword.ItemIndex) ?? 0;
+            var itemCount = attackerBody.inventory.GetItemCountEffective(BigSword.ItemIndex);
             if (itemCount > 0 && !damageInfo.procChainMask.HasModdedProc(swordProcType) && Util.CheckRoll(SwordChance.Value * damageInfo.procCoefficient, attackerBody.master))
             {
-                var damage = Util.OnHitProcDamage(damageInfo.damage, attackerBody.damage, SwordDamage.Value * itemCount);
                 var mask = damageInfo.procChainMask;
                 mask.AddModdedProc(swordProcType);
 
-                Physics.Raycast(damageInfo.position, Vector3.down, out var raycastHit, float.PositiveInfinity, LayerIndex.world.mask);
+				var position = damageInfo.position;
+				if (Physics.Raycast(damageInfo.position, Vector3.down, out var raycastHit, float.PositiveInfinity, LayerIndex.world.mask))
+					position = raycastHit.point;
 
                 ProjectileManager.instance.FireProjectile(new FireProjectileInfo
                 {
                     projectilePrefab = GCPAssets.SwordProjectile,
-                    position = raycastHit.point,
+                    position = position,
                     rotation = Quaternion.identity,
                     procChainMask = mask,
                     target = victim,
                     owner = damageInfo.attacker,
-                    damage = damage,
+                    damage = Util.OnHitProcDamage(damageInfo.damage, attackerBody.damage, SwordDamage.Value * itemCount),
                     crit = damageInfo.crit,
                     force = 1000f,
                     damageColorIndex = DamageColorIndex.Item,

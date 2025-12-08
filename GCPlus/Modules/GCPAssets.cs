@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Resources;
+using RoR2;
 using UnityEngine;
 
 namespace GoldenCoastPlusRevived.Modules
@@ -25,29 +26,25 @@ namespace GoldenCoastPlusRevived.Modules
         {
             try
             {
-                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GoldenCoastPlusRevived.Properties.Resources.resources"))
+                using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GoldenCoastPlusRevived.Properties.Resources.resources");
+                using var rr = new ResourceReader(stream);
+                var enumerator = rr.GetEnumerator();
+                while (enumerator.MoveNext())
                 {
-                    using (var rr = new ResourceReader(stream))
-                    {
-                        var enumerator = rr.GetEnumerator();
-                        while (enumerator.MoveNext())
-                        {
-                            string n = enumerator.Key as string;
-                            byte[] v = enumerator.Value as byte[];
+                    string n = enumerator.Key as string;
+                    byte[] v = enumerator.Value as byte[];
 
-                            if (n.Contains("Titanic_Greatsword"))
-                                BigSwordIcon = RegisterIcon(n, v, new Vector2(512, 512));
+                    if (n.Contains("Titanic_Greatsword"))
+                        BigSwordIcon = RegisterIcon(n, v, new Vector2(512, 512));
 
-                            if (n.Contains("Golden_Knurl"))
-                                GoldenKnurlIcon = RegisterIcon(n, v, new Vector2(256, 256));
+                    if (n.Contains("Golden_Knurl"))
+                        GoldenKnurlIcon = RegisterIcon(n, v, new Vector2(256, 256));
 
-                            if (n.Contains("Guardian_s_Eye"))
-                                LaserEyeIcon = RegisterIcon(n, v, new Vector2(512, 512));
+                    if (n.Contains("Guardian_s_Eye"))
+                        LaserEyeIcon = RegisterIcon(n, v, new Vector2(512, 512));
 
-                            if (n.Contains("Aurelionite_s_Blessing"))
-                                HiddenGoldBuffIcon = RegisterIcon(n, v, new Vector2(128, 128));
-                        }
-                    }
+                    if (n.Contains("Aurelionite_s_Blessing"))
+                        HiddenGoldBuffIcon = RegisterIcon(n, v, new Vector2(128, 128));
                 }
             }
             catch (System.Exception e) 

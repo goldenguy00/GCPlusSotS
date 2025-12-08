@@ -1,3 +1,22 @@
+`1.3.3`
+- Fixed gold generation bug
+- Fixed boss armor not getting removed fully when vulnerable
+- Updated configs
+---
+- Increased boss damage vulnerability from 1.5x to 2x
+- Increased boss health per level mult from 1x to 1.5x
+- Reduced boss max fist slam directions from 8 -> 6
+- Increase laser eye targets per stack from 2 -> 3
+- Reduced Golden Knurl armor per level from 3 -> 2
+- Increase Greatsword chance from 5% -> 10%
+- Increase Aurelionites Blessing gold % gain from 25% -> 40%
+
+`1.3.2`
+- Networked visuals for laser eye
+
+`1.3.1`
+- Updated for AC
+
 `1.3.0`
 
 - Fixed things just straight up ignoring configs???? 
