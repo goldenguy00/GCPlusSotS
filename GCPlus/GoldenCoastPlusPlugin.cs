@@ -19,7 +19,7 @@ namespace GoldenCoastPlusRevived
         public const string MOD_AUTHOR = "TechDebtCollector";
         public const string MOD_NAME = "GoldenCoastPlus";
         public const string MOD_GUID = $"com.{MOD_AUTHOR}.{MOD_NAME}";
-        public const string MOD_VERSON = "1.3.3";
+        public const string MOD_VERSON = "1.3.4";
 
         public void Awake()
 		{

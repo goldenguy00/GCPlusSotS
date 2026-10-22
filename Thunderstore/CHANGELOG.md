@@ -1,3 +1,6 @@
+`1.3.4`
+- Made boss fist slam actually work
+
 `1.3.3`
 - Fixed gold generation bug
 - Fixed boss armor not getting removed fully when vulnerable

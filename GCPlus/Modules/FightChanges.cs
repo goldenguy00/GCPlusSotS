@@ -41,7 +41,7 @@ namespace GoldenCoastPlusRevived.Modules
             On.EntityStates.Missions.Goldshores.GoldshoresBossfight.SetBossImmunity += GoldshoresBossfight_SetBossImmunity;
             On.EntityStates.Missions.Goldshores.GoldshoresBossfight.SpawnBoss += GoldshoresBossfight_SpawnBoss;
             IL.EntityStates.Missions.Goldshores.GoldshoresBossfight.ServerFixedUpdate += GoldshoresBossfight_ServerFixedUpdate;
-            //On.EntityStates.TitanMonster.FireGoldFist.PlacePredictedAttack += FireGoldFist_PlacePredictedAttack;
+            On.EntityStates.TitanMonster.FireGoldFist.PlacePredictedAttack += FireGoldFist_PlacePredictedAttack;
         }
 
         private static void GoldshoresMissionController_SpawnBeacons(On.RoR2.GoldshoresMissionController.orig_SpawnBeacons orig, GoldshoresMissionController self)
@@ -78,6 +78,8 @@ namespace GoldenCoastPlusRevived.Modules
 
         private static void GoldshoresBossfight_OnExit(On.EntityStates.Missions.Goldshores.GoldshoresBossfight.orig_OnExit orig, GoldshoresBossfight self)
         {
+            hasBuffed1 = false;
+            hasBuffed2 = false;
             FireGoldFist.fistCount = origFistCount;
             FireGoldMegaLaser.projectileFireFrequency = origProjectileFrequency;
             FireGoldMegaLaser.minimumDuration = origMinDuration;
@@ -237,15 +239,20 @@ namespace GoldenCoastPlusRevived.Modules
                 return;
             }
 
-            float startAngle = Random.Range(0, 360);
-            int maxAngles = hasBuffed2 ? 6 : 4;
-            int deltaAngle = 360 / maxAngles;
+            var rnd = Random.Range(0f, 360f);
+            int iMax = hasBuffed2 ? 6 : 4;
+            float angle = (360f / iMax);
+            int fistCount = FireGoldFist.fistCount;
+            if (hasBuffed1)
+                fistCount++;
+            if (hasBuffed2)
+                fistCount++;
 
-            for (var i = 0; i < maxAngles; i++)
+            for (var i = 0; i < iMax; i++)
             {
-                for (var j = 0; j < FireGoldFist.fistCount + (maxAngles / 2); j++)
+                for (var j = 0; j < fistCount; j++)
                 {
-                    var vector = Quaternion.Euler(0f, startAngle + i * deltaAngle, 0f) * Vector3.forward;
+                    var vector = Quaternion.Euler(0f, rnd + (angle * i), 0f) * Vector3.forward;
                     var vector2 = self.predictedTargetPosition + (vector * FireGoldFist.distanceBetweenFists * j);
 
                     if (Physics.Raycast(new Ray(vector2 + (Vector3.up * 30f), Vector3.down), out var raycastHit, 60f, LayerIndex.world.mask, QueryTriggerInteraction.Ignore))

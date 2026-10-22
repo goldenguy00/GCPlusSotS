@@ -75,7 +75,7 @@ namespace GoldenCoastPlusRevived
             TitanGoldArmorBroken.BossArmorBrokenMult = cfg.BindOptionSlider(section,
                 "Initial Damage taken multiplier debuff",
                 "Adjust the boss's damage taken multiplier, for a short window after each invulnerability phase ends",
-                2f,
+                1.5f,
                 1f, 5f,
                 Extensions.ConfigFlags.ServerSided);
 
