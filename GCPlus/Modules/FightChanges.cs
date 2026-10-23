@@ -8,6 +8,7 @@ using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RoR2;
+using RoR2.Skills;
 using RoR2BepInExPack.GameAssetPathsBetter;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -117,7 +118,7 @@ namespace GoldenCoastPlusRevived.Modules
 
             orig(self, newBossImmunity);
 
-            if (!self.scriptedCombatEncounter || newBossImmunity || newBossImmunity == oldBossImmunity)
+            if (!self.scriptedCombatEncounter || newBossImmunity == oldBossImmunity)
                 return;
 
             foreach (var master in self.scriptedCombatEncounter.combatSquad.readOnlyMembersList)
@@ -125,7 +126,16 @@ namespace GoldenCoastPlusRevived.Modules
                 var body = master.GetBody();
                 if (body)
                 {
-                    body.AddTimedBuff(TitanGoldArmorBroken.BuffIndex, 10f);
+                    if (newBossImmunity)
+                    {
+                        // disable laser while invuln
+                        body.skillLocator?.special?.SetBlockedCooldownSkillState(true);
+                    }
+                    else
+                    {
+                        body.AddTimedBuff(TitanGoldArmorBroken.BuffIndex, 10f);
+                        body.skillLocator?.special?.SetBlockedCooldownSkillState(false);
+                    }
                 }
             }
         }

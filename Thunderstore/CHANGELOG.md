@@ -1,5 +1,6 @@
 `1.4.1`
 - Removed beacon cost to prevent the fight from stagnating
+- Disabled boss laser while immune to damage
 
 `1.4.0`
 - Updated for the latest game version
