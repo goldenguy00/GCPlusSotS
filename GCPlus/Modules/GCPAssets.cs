@@ -62,8 +62,13 @@ namespace GoldenCoastPlusRevived.Modules
             Sprite ret = null;
             try
             {
-                var tex2D = new Texture2D(2, 2);
+                // icons are much larger than the hud slots they are drawn in, so they need mipmaps and trilinear filtering
+                // to downscale cleanly instead of aliasing
+                var tex2D = new Texture2D(2, 2, TextureFormat.RGBA32, true);
                 tex2D.LoadImage(buffer);
+                tex2D.filterMode = FilterMode.Trilinear;
+                tex2D.wrapMode = TextureWrapMode.Clamp;
+                tex2D.Apply(true);
 
                 // world space sprites (item orbs, scrapper, mithrix item steal) use pixelsPerUnit directly,
                 // so normalize every icon to the size of a vanilla 128px icon at 100ppu
