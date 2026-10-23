@@ -1,3 +1,6 @@
+`1.4.1`
+- Removed beacon cost to prevent the fight from stagnating
+
 `1.4.0`
 - Updated for the latest game version
 - Re-added Gold Elites (Coven of Gold), spawning only in Gilded Coast

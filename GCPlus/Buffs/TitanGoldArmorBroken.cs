@@ -2,7 +2,7 @@
 using GoldenCoastPlusRevived.Modules;
 using R2API;
 using RoR2;
-using RoR2BepInExPack.GameAssetPaths.Version_1_35_0;
+using RoR2BepInExPack.GameAssetPathsBetter;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 

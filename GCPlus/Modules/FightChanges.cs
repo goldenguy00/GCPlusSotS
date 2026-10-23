@@ -8,7 +8,7 @@ using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RoR2;
-using RoR2BepInExPack.GameAssetPaths.Version_1_35_0;
+using RoR2BepInExPack.GameAssetPathsBetter;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -58,6 +58,8 @@ namespace GoldenCoastPlusRevived.Modules
         {
             var body = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldBody_prefab).WaitForCompletion().GetComponent<CharacterBody>();
             body.levelMaxHealth *= BossHealthMult.Value;
+
+            Addressables.LoadAssetAsync<GameObject>(RoR2_Base_goldshores.GoldshoresBeacon_prefab).WaitForCompletion().GetComponent<PurchaseInteraction>().cost = 0;
         }
 
         private static void GoldshoresBossfight_SpawnBoss(On.EntityStates.Missions.Goldshores.GoldshoresBossfight.orig_SpawnBoss orig, GoldshoresBossfight self)
