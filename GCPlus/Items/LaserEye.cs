@@ -20,7 +20,7 @@ namespace GoldenCoastPlusRevived.Items
         internal override string pickup => "Collecting gold will charge up a powerful laser.";
         internal override string description => "<style=cShrine>Collecting gold</style> will charge up a <style=cDeath>powerful laser</style>. When armed, " +
             $"the <style=cDeath>laser</style> will fire at <style=cIsUtility>{EyeTargetsPerStack.Value}</style> <style=cStack>(+{EyeTargetsPerStack.Value} per stack)</style> " +
-            $"enemies within {EyeMaxRange.Value} meters, dealing <style=cIsDamage>{EyeDamage.Value}%</style> BASE damage.";
+            $"enemies within {EyeMaxRange.Value} meters, dealing <style=cIsDamage>{EyeDamage.Value * 100f}%</style> BASE damage.";
         internal override string lore => "The ability to see. Designs such as this have no need to taste. They do not feel, nor smell, nor hear that which surrounds them. " +
             "They have no need.\n\n...\n\nA sad existence. Forced to follow orders. Nothing more than a servant. No feelings.\n\nPerhaps one exception. " +
             "One day, this guardian will have no one to take orders from. Will have new challenges to overcome, and new decisions to make. A proper protector for this planet.";
@@ -38,6 +38,7 @@ namespace GoldenCoastPlusRevived.Items
         public static ConfigEntry<float> EyeBlastProcCoeff { get; set; }
         public static ConfigEntry<float> EyeMaxRange { get; set; }
         public static ConfigEntry<float> EyeStacksMultiplier { get; set; }
+        public static ConfigEntry<float> EyeDropWeight { get; set; }
 
         internal override void AddItem()
         {
@@ -93,13 +94,7 @@ namespace GoldenCoastPlusRevived.Items
             GCPAssets.LaserEyePrefab.AddComponent<ItemDisplay>().rendererInfos = [.. infos];
 
             base.AddItem();
-
-            var dt = Addressables.LoadAssetAsync<ExplicitPickupDropTable>(RoR2_Base_Titan.dtBossTitanGold_asset).WaitForCompletion();
-            HG.ArrayUtils.ArrayAppend(ref dt.pickupEntries, new ExplicitPickupDropTable.PickupDefEntry
-            {
-                pickupWeight = 1,
-                pickupDef = itemDef
-            });
+            AddToAurelioniteDropTable(EyeDropWeight);
         }
 
         internal override void AddHooks()
@@ -113,7 +108,7 @@ namespace GoldenCoastPlusRevived.Items
         {
             if (NetworkServer.active && body.inventory)
             {
-                body.AddItemBehavior<LaserEyeBehavior>(body.inventory.GetItemCountPermanent(itemDef));
+                body.AddItemBehavior<LaserEyeBehavior>(body.inventory.GetItemCountEffective(itemDef));
             }
         }
 

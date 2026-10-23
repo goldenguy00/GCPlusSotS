@@ -1,3 +1,20 @@
+`1.4.0`
+- Updated for the latest game version
+- Re-added Gold Elites (Coven of Gold), spawning only in Gilded Coast
+- Re-added the Halcyon Seed changes, allied Aurelionite is 3x as strong and its damage scales linearly
+- Added configurable drop weights for every item in Aurelionite's drop table
+- Added a config to disable Aurelionite's Blessing, and one to hide its buff icon
+- Added a config to disable the boss becoming Gilded
+- Fixed item icons being gigantic when shown in the world (scrappers, Mithrix stealing items, item orbs)
+- Fixed Mithrix being able to steal Aurelionite's Blessing
+- Fixed Golden Knurl granting almost no health, it now properly grants 33 max health per level
+- Fixed item descriptions not updating when changing configs in game
+- Fixed item descriptions showing wrong numbers for Titanic Greatsword's chance and damage and Guardian's Eye's damage
+- Fixed Titanic Greatsword multiplying its damage twice
+- Fixed the boss sword attack escalating out of order, it now goes single line -> cross -> star
+- The boss now becomes Gilded in phase 3 instead of phase 2
+- Guardian's Eye ready buff now uses the eye icon
+
 `1.3.4`
 - Made boss fist slam actually work
 

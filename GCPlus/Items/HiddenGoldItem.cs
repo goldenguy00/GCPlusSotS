@@ -10,7 +10,7 @@ namespace GoldenCoastPlusRevived.Items
 {
     internal class HiddenGoldItem : ItemBase<HiddenGoldItem>
 	{
-        public HiddenGoldItem() : base(FightChanges.EnableFightChanges.Value) { }
+        public HiddenGoldItem() : base(FightChanges.EnableFightChanges.Value && EnableBlessing.Value) { }
 
         internal override string name => "Aurelionite's Blessing";
         internal override string token => "HiddenGoldBuffItem";
@@ -20,26 +20,36 @@ namespace GoldenCoastPlusRevived.Items
         internal override GameObject modelPrefab => null;
         internal override Sprite iconSprite => GCPAssets.HiddenGoldBuffIcon;
         internal override ItemTier Tier => ItemTier.NoTier;
-        internal override ItemTag[] ItemTags => new ItemTag[] { ItemTag.BrotherBlacklist, ItemTag.CannotDuplicate, ItemTag.WorldUnique };
+        internal override ItemTag[] ItemTags => [ItemTag.BrotherBlacklist, ItemTag.CannotDuplicate, ItemTag.WorldUnique, ItemTag.CannotSteal, ItemTag.AIBlacklist];
         internal override bool hidden => true;
+
+        public static ConfigEntry<bool> EnableBlessing { get; set; }
+        public static ConfigEntry<bool> ShowBlessingBuff { get; set; }
         public static ConfigEntry<int> AurelioniteBlessingGoldGain { get; set; }
 
+        internal override void AddItem()
+        {
+            base.AddItem();
+
+            // keeps mithrix, scrappers and printers from taking the blessing
+            itemDef.canRemove = false;
+        }
 
         internal override void AddHooks()
         {
-            On.RoR2.CharacterMaster.GiveMoney += CharacterMaster_GiveMoney;
-            RoR2.CharacterBody.onBodyInventoryChangedGlobal += CharacterBody_onBodyInventoryChangedGlobal;
+            On.RoR2.CharacterMaster.GiveMoney_uint_bool += CharacterMaster_GiveMoney;
+            CharacterBody.onBodyInventoryChangedGlobal += CharacterBody_onBodyInventoryChangedGlobal;
         }
 
         private void CharacterBody_onBodyInventoryChangedGlobal(CharacterBody body)
         {
-            if (NetworkServer.active && body.inventory)
+            if (NetworkServer.active && body.inventory && ShowBlessingBuff.Value)
             {
                 body.SetBuffCount(HiddenGoldBuff.BuffIndex, body.inventory.GetItemCountEffective(HiddenGoldItem.ItemIndex));
             }
         }
 
-        private static void CharacterMaster_GiveMoney(On.RoR2.CharacterMaster.orig_GiveMoney orig, CharacterMaster self, uint amount)
+        private static void CharacterMaster_GiveMoney(On.RoR2.CharacterMaster.orig_GiveMoney_uint_bool orig, CharacterMaster self, uint amount, bool bypassStatManager)
         {
             if (amount > 0 && self.inventory)
             {
@@ -51,7 +61,7 @@ namespace GoldenCoastPlusRevived.Items
                 }
             }
 
-            orig(self, amount);
+            orig(self, amount, bypassStatManager);
         }
     }
 }

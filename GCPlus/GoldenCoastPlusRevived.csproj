@@ -19,23 +19,23 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="BepInEx.Core" Version="5.*" />
-    <PackageReference Include="R2API.ProcType" Version="1.0.2" />
-    <PackageReference Include="RoR2BepInExPack" Version="1.38.0" />
-    <PackageReference Include="RiskOfRain2.GameLibs" Version="1.4.0-r.0" />
-    <PackageReference Include="UnityEngine.Modules" Version="2021.3.33" />
-    <PackageReference Include="MMHOOK.RoR2" Version="2025.11.19">
-        <NoWarn>NU1701</NoWarn>
-    </PackageReference>
-    <PackageReference Include="R2API.RecalculateStats" Version="1.6.5" />
-    <PackageReference Include="R2API.Prefab" Version="1.1.1" />
-    <PackageReference Include="R2API.Items" Version="1.0.*" />
-    <PackageReference Include="R2API.Language" Version="1.1.0" />
+    <PackageReference Include="BepInEx.Core" Version="5.4.21" />
+    <PackageReference Include="RoR2BepInExPack" Version="*" />
+    <PackageReference Include="RiskOfRain2.GameLibs" Version="*-*" />
+    <PackageReference Include="UnityEngine.Modules" Version="2021.3.45" />
+    <PackageReference Include="MMHOOK.RoR2" Version="*" NoWarn="NU1701" />
+    <PackageReference Include="R2API.ProcType" Version="*" />
+    <PackageReference Include="R2API.RecalculateStats" Version="*" />
+    <PackageReference Include="R2API.Prefab" Version="*" />
+    <PackageReference Include="R2API.Items" Version="*" />
+    <PackageReference Include="R2API.Language" Version="*" />
+    <PackageReference Include="R2API.Elites" Version="*" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="MiscFixes">
-      <HintPath>..\..\..\_CORE\MysticFixes\Release\MiscFixes.dll</HintPath>
+      <HintPath>..\libs\MiscFixes.dll</HintPath>
+      <Private>false</Private>
     </Reference>
   </ItemGroup>
 
@@ -55,6 +55,6 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="call weave.bat $(TargetDir) $(AssemblyName)" />
+    <Exec Command="call &quot;$(MSBuildProjectDirectory)\weave.bat&quot; $(TargetDir) $(AssemblyName)" />
   </Target>
 </Project>

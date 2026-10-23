@@ -130,7 +130,7 @@ namespace GoldenCoastPlusRevived.Modules
             {
                 if (!scriptedCombatEncounter)
                 {
-                    scriptedCombatEncounter = UnityEngine.Object.Instantiate(GoldshoresBossfight.combatEncounterPrefab).GetComponent<ScriptedCombatEncounter>();
+                    scriptedCombatEncounter = UnityEngine.Object.Instantiate(GoldshoresBossfight.combatEncounterPrefab.gameObject).GetComponent<ScriptedCombatEncounter>();
                     scriptedCombatEncounter.GetComponent<BossGroup>().dropPosition = missionController.bossSpawnPosition;
                     NetworkServer.Spawn(scriptedCombatEncounter.gameObject);
                 }

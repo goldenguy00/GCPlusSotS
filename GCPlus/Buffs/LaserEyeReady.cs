@@ -1,8 +1,7 @@
 ﻿using GoldenCoastPlusRevived.Items;
+using GoldenCoastPlusRevived.Modules;
 using RoR2;
-using RoR2BepInExPack.GameAssetPaths.Version_1_35_0;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 namespace GoldenCoastPlusRevived.Buffs
 {
@@ -10,9 +9,9 @@ namespace GoldenCoastPlusRevived.Buffs
 	{
         public LaserEyeReady() : base(LaserEye.EnableEye.Value) { }
 
-        internal override string name => "LaserEyeReady";
-        internal override Sprite icon => Object.Instantiate(Addressables.LoadAssetAsync<BuffDef>(RoR2_Base_Merc.bdMercExpose_asset).WaitForCompletion().iconSprite);
-        internal override Color color => Color.red;
+        internal override string name => "bdGCPLaserEyeReady";
+        internal override Sprite icon => GCPAssets.LaserEyeIcon;
+        internal override Color color => Color.yellow;
         internal override bool canStack => false;
         internal override bool isDebuff => false;
         internal override bool isCooldown => false;

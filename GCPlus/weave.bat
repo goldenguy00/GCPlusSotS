@@ -5,7 +5,7 @@ REM call weave.bat $(TargetDir)
 set Target=%2
 set Output=%1
 REM set Libs=Weaver\libs
-set Store=..\Thunderstore
+set Store=%~dp0..\Thunderstore
 set Zip=%Store%\Release.zip
 set Log=%Output%OUTPUT.log
 

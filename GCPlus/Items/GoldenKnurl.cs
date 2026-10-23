@@ -15,7 +15,7 @@ namespace GoldenCoastPlusRevived.Items
         internal override string name => "Golden Knurl";
         internal override string token => "GoldenKnurl";
         internal override string pickup => "Boosts health, regeneration, and armor.";
-        internal override string description => $"<style=cIsHealing>Increase maximum health per level</style> by <style=cIsHealing>+{KnurlLevelHealth.Value}%</style> <style=cStack>(+{KnurlLevelHealth.Value}% per stack)</style>, " +
+        internal override string description => $"<style=cIsHealing>Increase maximum health per level</style> by <style=cIsHealing>+{KnurlLevelHealth.Value}</style> <style=cStack>(+{KnurlLevelHealth.Value} per stack)</style>, " +
             $"<style=cIsHealing>health regen per level</style> by <style=cIsHealing>+{KnurlLevelRegen.Value} hp/s</style> <style=cStack>(+{KnurlLevelRegen.Value} hp/s per stack)</style>," +
             $" and <style=cIsUtility>armor per level</style> by <style=cIsUtility>+{KnurlLevelArmor.Value}</style> <style=cStack>(+{KnurlLevelArmor.Value} per stack)</style>.";
         internal override string lore => "A well-tested design. One that's proven powerful, yet gentle. That which can coexist with this planet's creatures, but defend them when need be." +
@@ -33,6 +33,7 @@ namespace GoldenCoastPlusRevived.Items
         public static ConfigEntry<float> KnurlLevelHealth { get; set; }
         public static ConfigEntry<float> KnurlLevelRegen { get; set; }
         public static ConfigEntry<float> KnurlLevelArmor { get; set; }
+        public static ConfigEntry<float> KnurlDropWeight { get; set; }
 
         internal override void AddItem()
         {
@@ -63,13 +64,7 @@ namespace GoldenCoastPlusRevived.Items
             GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("GCPGoldenKnurlFollowerPebbles").localEulerAngles = GCPAssets.GoldenKnurlFollowerPrefab.transform.Find("KnurlPebbleParticles").localEulerAngles;
 
             base.AddItem();
-
-            var dt = Addressables.LoadAssetAsync<ExplicitPickupDropTable>(RoR2_Base_Titan.dtBossTitanGold_asset).WaitForCompletion();
-            HG.ArrayUtils.ArrayAppend(ref dt.pickupEntries, new ExplicitPickupDropTable.PickupDefEntry
-            {
-                pickupWeight = 1,
-                pickupDef = itemDef
-            });
+            AddToAurelioniteDropTable(KnurlDropWeight);
         }
 
         internal override void AddHooks()
@@ -87,7 +82,8 @@ namespace GoldenCoastPlusRevived.Items
             {
                 args.levelArmorAdd += KnurlLevelArmor.Value * itemCount;
                 args.levelRegenAdd += KnurlLevelRegen.Value * itemCount;
-                args.levelHealthAdd += KnurlLevelHealth.Value * itemCount * 0.01f;
+                // flat health per level, this was previously scaled down by 100x which made the item grant almost no health
+                args.levelHealthAdd += KnurlLevelHealth.Value * itemCount;
             }
         }
 

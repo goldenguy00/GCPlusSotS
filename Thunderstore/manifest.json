@@ -1,15 +1,17 @@
 {
     "name": "GoldenCoastPlus",
     "author": "TechDebtCollector",
-    "version_number": "1.3.4",
+    "version_number": "1.4.0",
     "website_url": "https://github.com/goldenguy00/GCPlusSotS",
     "description": "Adds some things to Golden Coast in the hopes of making it a more interesting and fun environment to visit. Highly configurable.",
     "dependencies": [
-        "bbepis-BepInExPack-5.4.2119",
-        "RiskofThunder-R2API_Items-1.0.7",
-        "RiskofThunder-R2API_Language-1.0.1",
-        "RiskofThunder-R2API_Prefab-1.0.4",
+        "bbepis-BepInExPack-5.4.2122",
+        "score-MiscFixes-1.6.1",
+        "RiskofThunder-R2API_Elites-1.1.3",
+        "RiskofThunder-R2API_Items-1.0.8",
+        "RiskofThunder-R2API_Language-1.1.0",
+        "RiskofThunder-R2API_Prefab-1.1.1",
         "RiskofThunder-R2API_ProcType-1.0.2",
-        "RiskofThunder-R2API_RecalculateStats-1.6.0"
+        "RiskofThunder-R2API_RecalculateStats-1.7.0"
     ]
 }

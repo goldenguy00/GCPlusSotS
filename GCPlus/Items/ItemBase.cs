@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using BepInEx.Configuration;
 using R2API;
 using RoR2;
+using RoR2BepInExPack.GameAssetPaths.Version_1_35_0;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace GoldenCoastPlusRevived.Items
 {
@@ -21,10 +25,14 @@ namespace GoldenCoastPlusRevived.Items
 
     public abstract class ItemBase
     {
+        internal static readonly List<ItemBase> instances = [];
+
         public ItemBase(bool enabled)
         {
             if (!enabled)
                 return;
+
+            instances.Add(this);
 
             AddTokens();
             AddItem();
@@ -44,12 +52,30 @@ namespace GoldenCoastPlusRevived.Items
 
         public ItemDef itemDef;
 
+        private LanguageAPI.LanguageOverlay descriptionOverlay;
+
         internal virtual void AddTokens()
         {
             LanguageAPI.Add(this.token.ToUpper() + "_NAME", this.name);
             LanguageAPI.Add(this.token.ToUpper() + "_PICKUP", this.pickup);
-            LanguageAPI.Add(this.token.ToUpper() + "_DESC", this.description);
             LanguageAPI.Add(this.token.ToUpper() + "_LORE", this.lore);
+            RefreshDescription();
+        }
+
+        /// <summary>
+        /// Descriptions are built from config values, so they are added as an overlay that gets rebuilt whenever the config changes.
+        /// LanguageAPI.Add never overwrites an existing token, which left in-game config changes out of the logbook and tooltips.
+        /// </summary>
+        internal void RefreshDescription()
+        {
+            descriptionOverlay?.Remove();
+            descriptionOverlay = LanguageAPI.AddOverlay(this.token.ToUpper() + "_DESC", this.description);
+        }
+
+        internal static void RefreshAllDescriptions()
+        {
+            foreach (var item in instances)
+                item.RefreshDescription();
         }
 
         internal virtual void AddItem()
@@ -67,6 +93,19 @@ namespace GoldenCoastPlusRevived.Items
             itemDef.hidden = this.hidden;
 
             ItemAPI.Add(new CustomItem(itemDef, this.AddItemDisplays()));
+        }
+
+        internal void AddToAurelioniteDropTable(ConfigEntry<float> dropWeight)
+        {
+            if (dropWeight.Value <= 0f)
+                return;
+
+            var dt = Addressables.LoadAssetAsync<ExplicitPickupDropTable>(RoR2_Base_Titan.dtBossTitanGold_asset).WaitForCompletion();
+            HG.ArrayUtils.ArrayAppend(ref dt.pickupEntries, new ExplicitPickupDropTable.PickupDefEntry
+            {
+                pickupWeight = dropWeight.Value,
+                pickupDef = itemDef
+            });
         }
 
         internal virtual void AddHooks() { }

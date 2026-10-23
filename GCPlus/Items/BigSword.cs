@@ -18,8 +18,8 @@ namespace GoldenCoastPlusRevived.Items
         internal override string name => "Titanic Greatsword";
         internal override string token => "BigSword";
         internal override string pickup => "Chance on hit to summon the sword of a long-imprisoned guardian.";
-        internal override string description => "<style=cIsDamage>5%</style> chance on hit to summon <style=cIsDamage>Aurelionite's sword</style> to strike an enemy from underneath " +
-            $"for <style=cIsDamage>{SwordDamage.Value}%</style> <style=cStack>(+{SwordDamage.Value}% per stack)</style> TOTAL damage.";
+        internal override string description => $"<style=cIsDamage>{SwordChance.Value}%</style> chance on hit to summon <style=cIsDamage>Aurelionite's sword</style> to strike an enemy from underneath " +
+            $"for <style=cIsDamage>{SwordDamage.Value * 100f}%</style> <style=cStack>(+{SwordDamage.Value * 100f}% per stack)</style> TOTAL damage.";
         internal override string lore => "The sword. The mark of a champion, fighting to protect. Perhaps, some day, the only thing between it and annihilation. " +
             "A tool to defend.\n\nBut, also, the tool of a conqueror. One that is designed with the sole purpose to draw blood. Nothing more. In which way it is used is up to the wielder.";
 
@@ -33,6 +33,7 @@ namespace GoldenCoastPlusRevived.Items
         public static ConfigEntry<float> SwordDamage { get; set; }
         public static ConfigEntry<float> SwordChance { get; set; }
         public static ConfigEntry<float> SwordProcCoeff { get; set; }
+        public static ConfigEntry<float> SwordDropWeight { get; set; }
 
         internal static ModdedProcType swordProcType = ProcTypeAPI.ReserveProcType();
 
@@ -42,10 +43,10 @@ namespace GoldenCoastPlusRevived.Items
 
             ContentAddition.AddProjectile(swordProj);
 
-            swordProj.GetComponent<ProjectileController>().procCoefficient = BigSword.SwordProcCoeff.Value;
-            swordProj.GetComponent<ProjectileImpactExplosion>().blastProcCoefficient = BigSword.SwordProcCoeff.Value;
-            swordProj.GetComponent<ProjectileDamage>().damage = BigSword.SwordDamage.Value;
-            swordProj.GetComponent<ProjectileImpactExplosion>().blastDamageCoefficient = BigSword.SwordDamage.Value;
+            // damage is fully calculated when firing, so the blast must not multiply it again
+            swordProj.GetComponent<ProjectileImpactExplosion>().blastDamageCoefficient = 1f;
+            UpdateProcCoefficient();
+            SwordProcCoeff.SettingChanged += (_, _) => UpdateProcCoefficient();
 
             var model = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Titan.TitanGoldBody_prefab).WaitForCompletion().GetComponent<ModelLocator>().modelTransform;
             GCPAssets.BigSwordPrefab = model.Find("TitanArmature/ROOT/base/stomach/chest/upper_arm.r/lower_arm.r/hand.r/RightFist").gameObject.InstantiateClone("GCPPickupBigSword", false);
@@ -72,13 +73,13 @@ namespace GoldenCoastPlusRevived.Items
 			mpp.minDistance += 5;
 
             base.AddItem();
+            AddToAurelioniteDropTable(SwordDropWeight);
+        }
 
-            var dt = Addressables.LoadAssetAsync<ExplicitPickupDropTable>(RoR2_Base_Titan.dtBossTitanGold_asset).WaitForCompletion();
-            HG.ArrayUtils.ArrayAppend(ref dt.pickupEntries, new ExplicitPickupDropTable.PickupDefEntry
-            {
-                pickupWeight = 1,
-                pickupDef = itemDef
-            });
+        private static void UpdateProcCoefficient()
+        {
+            GCPAssets.SwordProjectile.GetComponent<ProjectileController>().procCoefficient = SwordProcCoeff.Value;
+            GCPAssets.SwordProjectile.GetComponent<ProjectileImpactExplosion>().blastProcCoefficient = SwordProcCoeff.Value;
         }
 
         internal override void AddHooks()

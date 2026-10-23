@@ -4,6 +4,7 @@ using BepInEx;
 using GoldenCoastPlusRevived.Buffs;
 using GoldenCoastPlusRevived.Items;
 using GoldenCoastPlusRevived.Modules;
+using R2API;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -13,13 +14,20 @@ using GoldenCoastPlusRevived.Modules;
 
 namespace GoldenCoastPlusRevived
 {
+    [BepInDependency("_score.MiscFixes")]
+    [BepInDependency(ItemAPI.PluginGUID)]
+    [BepInDependency(LanguageAPI.PluginGUID)]
+    [BepInDependency(PrefabAPI.PluginGUID)]
+    [BepInDependency(RecalculateStatsAPI.PluginGUID)]
+    [BepInDependency(EliteAPI.PluginGUID)]
+    [BepInDependency(ProcTypeAPI.PluginGUID)]
     [BepInPlugin(MOD_GUID, MOD_NAME, MOD_VERSON)]
     public class GoldenCoastPlusPlugin : BaseUnityPlugin
 	{
         public const string MOD_AUTHOR = "TechDebtCollector";
         public const string MOD_NAME = "GoldenCoastPlus";
         public const string MOD_GUID = $"com.{MOD_AUTHOR}.{MOD_NAME}";
-        public const string MOD_VERSON = "1.3.4";
+        public const string MOD_VERSON = "1.4.0";
 
         public void Awake()
 		{
@@ -37,7 +45,12 @@ namespace GoldenCoastPlusRevived
             new HiddenGoldItem();
             new HiddenGoldBuff();
 
+            GoldElites.LoadAssets();
+            new AffixGold();
+            GoldElites.Init();
+
             FightChanges.Init();
+            SeedChanges.Init();
 		}
     }
 }

@@ -9,7 +9,7 @@ namespace GoldenCoastPlusRevived.Buffs
 	{
         public LaserEyeCharge() : base(LaserEye.EnableEye.Value) { }
 
-        internal override string name => "LaserEyeCharge";
+        internal override string name => "bdGCPLaserEyeCharge";
         internal override Sprite icon => GCPAssets.LaserEyeIcon;
         internal override Color color => Color.red;
         internal override bool canStack => true;

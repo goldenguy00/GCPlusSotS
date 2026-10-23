@@ -25,7 +25,11 @@ namespace GoldenCoastPlusRevived
             BindTitanicGreatsword(cfg, "3. Titanic Greatsword");
             BindGoldenKnurl(cfg, "4. Golden Knurl");
             BindGuardiansEye(cfg, "5. Guardians Eye");
+            BindHalcyonSeed(cfg, "6. Halcyon Seed");
+            BindGoldElites(cfg, "7. Gold Elites");
             ValidateConfig(cfg);
+
+            cfg.SettingChanged += (_, _) => ItemBase.RefreshAllDescriptions();
         }
 
         private static void BindConfig(ConfigFile cfg, string section)
@@ -79,6 +83,24 @@ namespace GoldenCoastPlusRevived
                 1f, 5f,
                 Extensions.ConfigFlags.ServerSided);
 
+            FightChanges.UseGildedAffix = cfg.BindOption(section,
+                "Boss Gilded Affix",
+                "Should the boss Aurelionite become Gilded when it enters its final phase?",
+                true,
+                Extensions.ConfigFlags.ServerSided);
+
+            HiddenGoldItem.EnableBlessing = cfg.BindOption(section,
+                "Enable Aurelionites Blessing",
+                "Should killing Aurelionite grant Aurelionite's Blessing, a permanent gold gain bonus? Disable this if you only want the fight changes.",
+                true,
+                Extensions.ConfigFlags.RestartRequired);
+
+            HiddenGoldItem.ShowBlessingBuff = cfg.BindOption(section,
+                "Show Aurelionites Blessing Buff",
+                "Should Aurelionite's Blessing show up in the buff bar?",
+                true,
+                Extensions.ConfigFlags.RestartRequired);
+
             HiddenGoldItem.AurelioniteBlessingGoldGain = cfg.BindOptionSlider(section,
                 "Aurelionites Blessing gold gain multiplier",
                 "Adjust the percent additional gold gain, in percent.",
@@ -109,12 +131,24 @@ namespace GoldenCoastPlusRevived
                 1f, 100f, 
                 Extensions.ConfigFlags.ServerSided);
 
-            BigSword.SwordProcCoeff = cfg.BindOptionSlider(section, 
-                "Titanic Greatsword Proc Coeff", 
-                "Adjust Titanic Greatsword's proc coefficient.", 
+            BigSword.SwordProcCoeff = cfg.BindOptionSlider(section,
+                "Titanic Greatsword Proc Coeff",
+                "Adjust Titanic Greatsword's proc coefficient.",
                 1f,
-                0f, 3f, 
+                0f, 3f,
                 Extensions.ConfigFlags.ServerSided);
+
+            BigSword.SwordDropWeight = BindDropWeight(cfg, section, "Titanic Greatsword");
+        }
+
+        private static ConfigEntry<float> BindDropWeight(ConfigFile cfg, string section, string itemName)
+        {
+            return cfg.BindOptionSlider(section,
+                $"{itemName} Drop Weight",
+                $"Adjust how likely Aurelionite is to drop {itemName}, relative to the other items in its drop table. 0 removes it from the drop table.",
+                1f,
+                0f, 10f,
+                Extensions.ConfigFlags.RestartRequired);
         }
         
         private static void BindGoldenKnurl(ConfigFile cfg, string section)
@@ -142,6 +176,8 @@ namespace GoldenCoastPlusRevived
                 "Adjust how much armor per level Golden Knurl grants.",
                 2f,
                 0f, 10f);
+
+            GoldenKnurl.KnurlDropWeight = BindDropWeight(cfg, section, "Golden Knurl");
         }
         
         private static void BindGuardiansEye(ConfigFile cfg, string section)
@@ -183,8 +219,72 @@ namespace GoldenCoastPlusRevived
             LaserEye.EyeStacksMultiplier = cfg.BindOptionSlider(section,
                 "Guardians Eye Stacks Required",
                 "Adjust how much gold income is required for Guardian's Eye to trigger, as a multiple of the cost of a small chest.",
-                1f, 
+                1f,
                 0.1f, 5f,
+                Extensions.ConfigFlags.ServerSided);
+
+            LaserEye.EyeDropWeight = BindDropWeight(cfg, section, "Guardians Eye");
+        }
+
+        private static void BindHalcyonSeed(ConfigFile cfg, string section)
+        {
+            SeedChanges.EnableSeedChanges = cfg.BindOption(section,
+                "Enable Halcyon Seed Changes",
+                "Should allied Aurelionite be stronger, with its damage scaling linearly with Halcyon Seeds like its health does?",
+                true,
+                Extensions.ConfigFlags.RestartRequired);
+
+            SeedChanges.AllyStrengthMultiplier = cfg.BindOptionSlider(section,
+                "Allied Aurelionite Strength Multiplier",
+                "Adjust how many times stronger allied Aurelionite is per Halcyon Seed.",
+                3,
+                1, 10,
+                Extensions.ConfigFlags.RestartRequired);
+
+            SeedChanges.SeedDropWeight = BindDropWeight(cfg, section, "Halcyon Seed");
+        }
+
+        private static void BindGoldElites(ConfigFile cfg, string section)
+        {
+            GoldElites.EnableGoldElites = cfg.BindOption(section,
+                "Enable Gold Elites",
+                "Should Gold elites (Coven of Gold) spawn in Gilded Coast? They never spawn anywhere else.",
+                true,
+                Extensions.ConfigFlags.RestartRequired);
+
+            GoldElites.EliteCostMultiplier = cfg.BindOptionSlider(section,
+                "Gold Elite Cost Multiplier",
+                "Adjust the director cost of Gold elites, relative to tier 1 elites.",
+                1f,
+                0.1f, 10f,
+                Extensions.ConfigFlags.RestartRequired);
+
+            GoldElites.HealthBoostCoefficient = cfg.BindOptionSlider(section,
+                "Gold Elite Health Multiplier",
+                "Adjust the health multiplier of Gold elites.",
+                11f,
+                1f, 30f,
+                Extensions.ConfigFlags.RestartRequired);
+
+            GoldElites.DamageBoostCoefficient = cfg.BindOptionSlider(section,
+                "Gold Elite Damage Multiplier",
+                "Adjust the damage multiplier of Gold elites.",
+                4f,
+                1f, 10f,
+                Extensions.ConfigFlags.RestartRequired);
+
+            GoldElites.GoldStealAmount = cfg.BindOptionSlider(section,
+                "Gold Steal Amount",
+                "Adjust how much gold is stolen or granted per hit, before scaling with difficulty and proc coefficient.",
+                2f,
+                0f, 10f,
+                Extensions.ConfigFlags.ServerSided);
+
+            GoldElites.GoldRewardMultiplier = cfg.BindOptionSlider(section,
+                "Gold Reward Multiplier",
+                "Adjust the multiplier on the gold Gold elites drop when killed.",
+                5f,
+                1f, 20f,
                 Extensions.ConfigFlags.ServerSided);
         }
         private static void ValidateConfig(ConfigFile cfg)
@@ -209,8 +309,8 @@ namespace GoldenCoastPlusRevived
                 }
             }
 
-            cfg.WipeConfig();
-            _backupConfig.WipeConfig();
+            cfg.DeleteOrphanedEntries();
+            _backupConfig.DeleteOrphanedEntries();
         }
 
         private static ConfigEntryBase BindBackup(ConfigFile cfg, ConfigEntryBase entry)

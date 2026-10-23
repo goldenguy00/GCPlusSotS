@@ -19,14 +19,17 @@ namespace GoldenCoastPlusRevived.Modules
         public static ConfigEntry<bool> EnableFightChanges { get; set; }
         public static ConfigEntry<float> BossHealthMult { get; set; }
         public static ConfigEntry<bool> UseAdaptiveArmor { get; set; }
+        public static ConfigEntry<bool> UseGildedAffix { get; set; }
 
         private static float origMinDuration;
         private static float origMaxDuration;
         private static int origFistCount;
         private static float origProjectileFrequency;
 
-        private static bool hasBuffed1;
-        private static bool hasBuffed2;
+        /// <summary>
+        /// 1 = full health, 2 = below 2/3 health, 3 = below 1/3 health (enraged)
+        /// </summary>
+        private static int currentPhase = 1;
 
         internal static void Init()
         {
@@ -60,8 +63,7 @@ namespace GoldenCoastPlusRevived.Modules
         private static void GoldshoresBossfight_SpawnBoss(On.EntityStates.Missions.Goldshores.GoldshoresBossfight.orig_SpawnBoss orig, GoldshoresBossfight self)
         {
             orig(self);
-            hasBuffed1 = false;
-            hasBuffed2 = false;
+            currentPhase = 1;
 
             if (!self.scriptedCombatEncounter)
                 return;
@@ -78,8 +80,7 @@ namespace GoldenCoastPlusRevived.Modules
 
         private static void GoldshoresBossfight_OnExit(On.EntityStates.Missions.Goldshores.GoldshoresBossfight.orig_OnExit orig, GoldshoresBossfight self)
         {
-            hasBuffed1 = false;
-            hasBuffed2 = false;
+            currentPhase = 1;
             FireGoldFist.fistCount = origFistCount;
             FireGoldMegaLaser.projectileFireFrequency = origProjectileFrequency;
             FireGoldMegaLaser.minimumDuration = origMinDuration;
@@ -150,6 +151,9 @@ namespace GoldenCoastPlusRevived.Modules
 
         private static void GoldshoresBossfight_GiveBuff(GoldshoresBossfight self)
         {
+            if (HiddenGoldItem.ItemIndex == ItemIndex.None)
+                return;
+
             foreach (var master in PlayerCharacterMasterController.instances)
             {
                 if (master.master && master.master.inventory)
@@ -171,37 +175,28 @@ namespace GoldenCoastPlusRevived.Modules
                 return true;
 
             var combinedHealthFraction = mainBody.healthComponent.combinedHealthFraction;
-            if (combinedHealthFraction <= (1f / 3f))
+            var targetPhase = combinedHealthFraction <= (1f / 3f) ? 3 : combinedHealthFraction <= (2f / 3f) ? 2 : 1;
+            if (targetPhase <= currentPhase)
+                return false;
+
+            currentPhase = targetPhase;
+            if (currentPhase == 3)
             {
-                if (!hasBuffed2)
+                // enrage: cooldown reduction, and the gilded affix which adds its own ring of gold spikes on top of the swords
+                foreach (var master in self.scriptedCombatEncounter.combatSquad.readOnlyMembersList)
                 {
-                    hasBuffed2 = true;
-                    foreach (var master in self.scriptedCombatEncounter.combatSquad.readOnlyMembersList)
-                    {
-                        if (master.inventory)
-                            master.inventory.GiveItem(RoR2Content.Items.AlienHead.itemIndex, 1);
-                    }
-                    return true;
-                }
-            }
-            else if (combinedHealthFraction <= (2f / 3f))
-            {
-                if (!hasBuffed1)
-                {
-                    hasBuffed1 = true;
-                    foreach (var master in self.scriptedCombatEncounter.combatSquad.readOnlyMembersList)
-                    {
-                        var body = master.GetBody();
-                        if (body && master.inventory)
-                        {
-                            GiveAffix(body, master.inventory, DLC2Content.Elites.Aurelionite);
-                        }
-                    }
-                    return true;
+                    if (!master.inventory)
+                        continue;
+
+                    master.inventory.GiveItemPermanent(RoR2Content.Items.AlienHead.itemIndex, 1);
+
+                    var body = master.GetBody();
+                    if (body && UseGildedAffix.Value)
+                        GiveAffix(body, master.inventory, DLC2Content.Elites.Aurelionite);
                 }
             }
 
-            return false;
+            return true;
         }
 
         internal static void GiveAffix(CharacterBody body, Inventory inventory, EliteDef elite)
@@ -233,24 +228,22 @@ namespace GoldenCoastPlusRevived.Modules
 
         private static void FireGoldFist_PlacePredictedAttack(On.EntityStates.TitanMonster.FireGoldFist.orig_PlacePredictedAttack orig, FireGoldFist self)
         {
-            if (!hasBuffed1 && !hasBuffed2)
+            // phase 1: a single line (vanilla), phase 2: a cross, phase 3: a six pointed star
+            if (currentPhase <= 1)
             {
                 orig(self);
                 return;
             }
 
             var rnd = Random.Range(0f, 360f);
-            int iMax = hasBuffed2 ? 6 : 4;
+            int iMax = currentPhase >= 3 ? 6 : 4;
             float angle = (360f / iMax);
-            int fistCount = FireGoldFist.fistCount;
-            if (hasBuffed1)
-                fistCount++;
-            if (hasBuffed2)
-                fistCount++;
+            int fistCount = FireGoldFist.fistCount + currentPhase - 1;
 
             for (var i = 0; i < iMax; i++)
             {
-                for (var j = 0; j < fistCount; j++)
+                // the center blast is shared by every direction, only place it once
+                for (var j = i == 0 ? 0 : 1; j < fistCount; j++)
                 {
                     var vector = Quaternion.Euler(0f, rnd + (angle * i), 0f) * Vector3.forward;
                     var vector2 = self.predictedTargetPosition + (vector * FireGoldFist.distanceBetweenFists * j);
